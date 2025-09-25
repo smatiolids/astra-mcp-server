@@ -1,0 +1,11 @@
+[project]
+name = "astra-mcp-server"
+version = "0.1.0"
+description = "Astra MCP Server"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "astrapy>=2.0.1",
+    "fastmcp>=2.12.1",
+    "python-dotenv>=1.1.1",
+]
