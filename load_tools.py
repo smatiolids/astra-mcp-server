@@ -146,8 +146,21 @@ TOOL_CONFIGS = [
     },
     {
         "name": "rag",
-        "collection": "latam_faq",
-        "limit": 10
+        "collection_name": "latam_faq",
+        "limit": 10,
+        "parameters": [
+            {  # Tool parameter
+                "param": "search_query",
+                "description": "Query to search for products",
+                "attribute": "$vectorize",
+                "datatype": "string"
+            },
+            {  # Static Filter
+                "param": "company_id",
+                "value": "LATAM",
+                "attribute": "metadata.company_id"
+            }
+        ],
     }
 ]
 

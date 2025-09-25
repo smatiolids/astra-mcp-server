@@ -36,3 +36,9 @@ The project includes a comprehensive logging system with the following features:
 source .venv/bin/activate
 uv run server.py
 ```
+
+## Using MCP Inspector
+
+```bash
+npx @modelcontextprotocol/inspector
+```
