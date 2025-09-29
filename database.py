@@ -5,6 +5,7 @@ Database operations and utilities for interacting with Astra DB.
 """
 
 import os
+import asyncio
 import json
 from fastmcp import Context
 from typing import Any, Dict, List, Optional
@@ -29,6 +30,7 @@ class AstraDBManager:
     """Manager class for Astra DB operations."""
     
     def __init__(self):
+        self.client = None
         self.db = None
         self._initialize_database()
     
@@ -38,21 +40,30 @@ class AstraDBManager:
         astra_db_api_endpoint = os.getenv("ASTRA_DB_API_ENDPOINT")
         
         if not astra_db_token or not astra_db_api_endpoint:
-            logger.warning("Astra DB credentials not found. Set ASTRA_DB_APPLICATION_TOKEN and ASTRA_DB_API_ENDPOINT environment variables.")
+            logger.error("Astra DB credentials not found. Set ASTRA_DB_APPLICATION_TOKEN and ASTRA_DB_API_ENDPOINT environment variables.")
             return
         
         try:
-            client = DataAPIClient()
-            self.db = client.get_database(
+            self.client = DataAPIClient()
+            self.db = self.client.get_database(
                 astra_db_api_endpoint,
                 token=astra_db_token
             )
+            logger.debug("available collections: %s", self.db.list_collection_names())
+            
             logger.info("Connected to Astra DB successfully")
         except Exception as e:
             logger.error(f"Could not connect to Astra DB: {e}")
-            
-
-    def find_documents(
+    
+    def get_dbs(self) -> str:
+        admin_client = self.client.get_admin(token=os.getenv("ASTRA_DB_APPLICATION_TOKEN"))
+        db_list = admin_client.list_databases()
+        return json.dumps({
+            "success": True,
+            "dbs": db_list
+        })
+    
+    async def find_documents(
         self,
         search_query: Optional[str] = None,
         filter_dict: Optional[Dict[str, Any]] = None,
@@ -71,7 +82,7 @@ class AstraDBManager:
         # sort = tools_parameters["sort"]
         # projection = tools_parameters["projection"]
         
-        logger.debug(f"Finding documents in collection '{collection_name}' with filter: {filter_dict}, limit: {limit}")
+        logger.info(f"Finding documents in collection '{collection_name}' with filter: {filter_dict}, limit: {limit}")
         
         if not self.db:
             logger.error("Astra DB not available. Check your credentials.")
@@ -95,6 +106,8 @@ class AstraDBManager:
             
             if projection:
                 find_params["projection"] = projection
+            
+            logger.info("find_params %s", find_params)
 
             result = target_collection.find(**find_params)
             documents = list(result)

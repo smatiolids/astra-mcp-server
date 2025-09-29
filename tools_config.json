@@ -1,0 +1,45 @@
+[
+    {
+        "name": "collections",
+        "description": "List all collections in the Astra DB database",
+        "parameters": [],
+        "method": "list_collections"
+    },
+    {
+        "name": "search_products",
+        "description": "Search for products",
+        "parameters": [
+            {  
+                "param": "search_query",
+                "description": "Query to search for products",
+                "attribute": "$vectorize",
+                "type": "string",
+                "required": 1
+            },
+            {  
+                "param": "in_stock",
+                "value": 1,
+                "attribute": "in_stock"
+            }
+        ],
+        "method": "find_documents",
+        "collection_name": "products",
+        "limit": 10
+    },
+    {
+        "name": "rag",
+        "method": "find_documents",
+        "collection_name": "latam_faq",
+        "description": "Search the LATAM FAQ for a question and return relevant context",
+        "limit": 10,
+        "projection" : {"$vectorize": 1, "metadata": 0},
+        "parameters": [
+            {  
+                "param": "search_query",
+                "description": "Query to search for products",
+                "attribute": "$vectorize",
+                "type": "string"
+            }
+        ]
+    }
+]
