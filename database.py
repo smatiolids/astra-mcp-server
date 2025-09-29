@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 from astrapy import DataAPIClient
 from logger import get_logger
+from utils import rename_dict_keys
 
 # Load environment variables
 load_dotenv()
@@ -29,25 +30,25 @@ class AppContext:
 class AstraDBManager:
     """Manager class for Astra DB operations."""
     
-    def __init__(self):
+    def __init__(self, astra_db_token: str, astra_db_api_endpoint: str):
+        self.astra_db_token = astra_db_token
+        self.astra_db_api_endpoint = astra_db_api_endpoint
         self.client = None
         self.db = None
         self._initialize_database()
     
     def _initialize_database(self):
         """Initialize Astra DB connection."""
-        astra_db_token = os.getenv("ASTRA_DB_APPLICATION_TOKEN")
-        astra_db_api_endpoint = os.getenv("ASTRA_DB_API_ENDPOINT")
         
-        if not astra_db_token or not astra_db_api_endpoint:
+        if not self.astra_db_token or not self.astra_db_api_endpoint:
             logger.error("Astra DB credentials not found. Set ASTRA_DB_APPLICATION_TOKEN and ASTRA_DB_API_ENDPOINT environment variables.")
             return
         
         try:
             self.client = DataAPIClient()
             self.db = self.client.get_database(
-                astra_db_api_endpoint,
-                token=astra_db_token
+                self.astra_db_api_endpoint,
+                token=self.astra_db_token
             )
             logger.debug("available collections: %s", self.db.list_collection_names())
             
@@ -55,8 +56,16 @@ class AstraDBManager:
         except Exception as e:
             logger.error(f"Could not connect to Astra DB: {e}")
     
+    def get_catalog_content(self, collection_name: str) -> str:
+        """Get catalog content from Astra DB collection."""
+        collection = self.db.get_collection(collection_name)
+        result = collection.find_many({})
+        
+        result = rename_dict_keys(result)
+        return result
+    
     def get_dbs(self) -> str:
-        admin_client = self.client.get_admin(token=os.getenv("ASTRA_DB_APPLICATION_TOKEN"))
+        admin_client = self.client.get_admin(token=self.astra_db_token)
         db_list = admin_client.list_databases()
         return json.dumps({
             "success": True,

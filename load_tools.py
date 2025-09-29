@@ -36,10 +36,12 @@ class ToolLoader:
         
         parameters = {
             "type": "object",
-            "properties": {},
             "required": []
         }
         
+        if "parameters" in config:
+            parameters["properties"] = {}
+            
         for param in config["parameters"]:
             if "value" in param:
                 continue

@@ -41,3 +41,11 @@ async def test_run_rag(mcp_client):
     print(result)
     assert result is not None, "Server did not respond with rag tool"
     assert result.data is not None, "Server did not respond with rag tool"
+
+@pytest.mark.asyncio
+async def test_run_list_collections(mcp_client):
+    """Test running the search_products tool through the MCP client."""
+    result = await mcp_client.call_tool("collections", {})
+    print(result)
+    assert result is not None, "Server did not respond with collections tool"
+    assert result.data is not None, "Server did not respond with collections tool"

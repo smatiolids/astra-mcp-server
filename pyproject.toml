@@ -17,3 +17,7 @@ dev-dependencies = [
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
 ]
+
+[project.scripts]
+upload_catalog = "uvicorn catalog:main --factory --reload"
+astra-mcp-server = "server:main"
