@@ -14,7 +14,6 @@ async def mcp_client():
 async def test_server_connection(mcp_client):
     """Test that the MCP client can successfully ping the server."""
     response = await mcp_client.ping()  # assuming the client has a ping method
-    print(response)
     assert response == True, "Server did not respond with 'ok'"
 
 @pytest.mark.asyncio

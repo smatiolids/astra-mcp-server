@@ -34,8 +34,6 @@ def main():
     
     args = parser.parse_args()
     
-    print(args)
-    
     # Initialize MCP
     mcp = FastMCP("Astra MCP Server")
     astra_db_manager = AstraDBManager(args.astra_token, args.astra_endpoint)
@@ -49,9 +47,7 @@ def main():
         logger.info(f"Loading tools Astra collection {args.catalog_collection}")
         tools_config_content = astra_db_manager.get_catalog_content(collection_name=args.catalog_collection)
        
-    # Add middleware to process tool calling
-       
-    print(tools_config_content)        
+    # Add middleware to process tool calling   
     mcp.add_middleware(RunToolMiddleware(astra_db_manager,tools_config_content))
     
     logger.info("Initializing Astra MCP Server")

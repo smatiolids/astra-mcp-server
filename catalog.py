@@ -25,7 +25,6 @@ class AstraCatalog:
 def upload_catalog(file_path: str):
     catalog = AstraCatalog()
     catalog_content = json.load(open(file_path))
-    print(catalog_content)
     catalog.upload_catalog(catalog_content)
 
 def main():
