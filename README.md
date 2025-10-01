@@ -18,17 +18,45 @@ LOG_FILE=logs/astra_mcp_server.log
 ```
 ## Usage
 
-### Starting the Server
+### Quick Start (from GitHub)
 
 ```bash
-source .venv/bin/activate
-uvicorn server:main --reload --port 5150 --log-level debug --factory
+# Run directly from GitHub repository
+uvx git+https://github.com/smatiolids/astra-mcp-server.git
+
+# Run with custom settings
+uvx git+https://github.com/smatiolids/astra-mcp-server.git --host 127.0.0.1 --port 5150 --reload --log-level debug
+```
+
+### Local Development
+
+```bash
+# Install dependencies
+uv sync
+
+# Run the server
+uv run astra-mcp-server --host 127.0.0.1 --port 5150 --reload --log-level debug
+```
+
+### Alternative: Direct uvicorn (for development)
+
+```bash
+# Run directly with uvicorn
+uv run uvicorn server:main --factory --reload --port 5150 --log-level debug
 ```
 
 
-
-## Using MCP Inspector
+## Using MCP Inspector (STDIO)
 
 ```bash
-npx @modelcontextprotocol/inspector
+npx @modelcontextprotocol/inspector uv run astra-mcp-server --log-level debug -tr stdio
+```
+
+# Distribution
+
+```bash
+uv pip install --upgrade build
+uv pip install --upgrade twine
+uv build
+uv twine upload dist/*
 ```

@@ -4,7 +4,6 @@ Astra DB Operations
 Database operations and utilities for interacting with Astra DB.
 """
 
-import os
 import asyncio
 import json
 from fastmcp import Context
@@ -20,7 +19,6 @@ from utils import rename_dict_keys
 load_dotenv()
 
 # Initialize logger
-logger = get_logger("astra_db")
 
 @dataclass
 class AppContext:
@@ -29,7 +27,7 @@ class AppContext:
 
 class AstraDBManager:
     """Manager class for Astra DB operations."""
-    
+    logger = get_logger("Astra DB Manager")
     def __init__(self, astra_db_token: str, astra_db_api_endpoint: str):
         self.astra_db_token = astra_db_token
         self.astra_db_api_endpoint = astra_db_api_endpoint
@@ -41,7 +39,7 @@ class AstraDBManager:
         """Initialize Astra DB connection."""
         
         if not self.astra_db_token or not self.astra_db_api_endpoint:
-            logger.error("Astra DB credentials not found. Set ASTRA_DB_APPLICATION_TOKEN and ASTRA_DB_API_ENDPOINT environment variables.")
+            self.logger.error("Astra DB credentials not found. Set ASTRA_DB_APPLICATION_TOKEN and ASTRA_DB_API_ENDPOINT environment variables.")
             return
         
         try:
@@ -50,18 +48,17 @@ class AstraDBManager:
                 self.astra_db_api_endpoint,
                 token=self.astra_db_token
             )
-            logger.debug("available collections: %s", self.db.list_collection_names())
+            self.logger.debug("available collections: %s", self.db.list_collection_names())
             
-            logger.info("Connected to Astra DB successfully")
+            self.logger.info("Connected to Astra DB successfully")
         except Exception as e:
-            logger.error(f"Could not connect to Astra DB: {e}")
+            self.logger.error(f"Could not connect to Astra DB: {e}")
     
     def get_catalog_content(self, collection_name: str) -> str:
         """Get catalog content from Astra DB collection."""
-        collection = self.db.get_collection(collection_name)
-        result = collection.find_many({})
-        
-        result = rename_dict_keys(result)
+        collection =  self.db.get_collection(collection_name)
+        result = collection.find({})
+        result = rename_dict_keys(list(result))
         return result
     
     def get_dbs(self) -> str:
@@ -72,7 +69,7 @@ class AstraDBManager:
             "dbs": db_list
         })
     
-    async def find_documents(
+    def find_documents(
         self,
         search_query: Optional[str] = None,
         filter_dict: Optional[Dict[str, Any]] = None,
@@ -91,15 +88,15 @@ class AstraDBManager:
         # sort = tools_parameters["sort"]
         # projection = tools_parameters["projection"]
         
-        logger.info(f"Finding documents in collection '{collection_name}' with filter: {filter_dict}, limit: {limit}")
+        self.logger.info(f"Finding documents in collection '{collection_name}' with filter: {filter_dict}, limit: {limit}")
         
         if not self.db:
-            logger.error("Astra DB not available. Check your credentials.")
+            self.logger.error("Astra DB not available. Check your credentials.")
             return json.dumps({"error": "Astra DB not available. Check your credentials."})
         try:
             target_collection = self.db.get_collection(collection_name)
             if not target_collection:
-                logger.error(f"Collection '{collection_name}' not available.")
+                self.logger.error(f"Collection '{collection_name}' not available.")
                 return json.dumps({"error": "Collection not available."})
             
             find_params = {}
@@ -116,18 +113,18 @@ class AstraDBManager:
             if projection:
                 find_params["projection"] = projection
             
-            logger.info("find_params %s", find_params)
+            self.logger.info("find_params %s", find_params)
 
             result = target_collection.find(**find_params)
             documents = list(result)
-            logger.info(f"Found {len(documents)} documents in collection '{collection_name}'")
+            self.logger.info(f"Found {len(documents)} documents in collection '{collection_name}'")
             return json.dumps({
                 "success": True,
                 "count": len(documents),
                 "documents": documents
             }, default=str)
         except Exception as e:
-            logger.error(f"Failed to find documents in collection '{collection_name}': {str(e)}")
+            self.logger.error(f"Failed to find documents in collection '{collection_name}': {str(e)}")
             return json.dumps({"error": f"Failed to find documents: {str(e)}"})
     
     # def insert_document(
@@ -144,25 +141,25 @@ class AstraDBManager:
     #         document = tools_parameters.get('document', document)
     #         collection_name = tools_parameters.get('collection_name', collection_name)
         
-    #     logger.debug(f"Inserting document into collection '{collection_name}': {document}")
+    #     self.logger.debug(f"Inserting document into collection '{collection_name}': {document}")
         
     #     if not self.db:
-    #         logger.error("Astra DB not available. Check your credentials.")
+    #         self.logger.error("Astra DB not available. Check your credentials.")
     #         return json.dumps({"error": "Astra DB not available. Check your credentials."})
     #     try:
     #         target_collection = self.db.get_collection(collection_name)
     #         if not target_collection:
-    #             logger.error(f"Collection '{collection_name}' not available.")
+    #             self.logger.error(f"Collection '{collection_name}' not available.")
     #             return json.dumps({"error": "Collection not available."})
     #         result = target_collection.insert_one(document)
-    #         logger.info(f"Successfully inserted document with ID {result.inserted_id} into collection '{collection_name}'")
+    #         self.logger.info(f"Successfully inserted document with ID {result.inserted_id} into collection '{collection_name}'")
     #         return json.dumps({
     #             "success": True,
     #             "inserted_id": str(result.inserted_id),
     #             "document": document
     #         })
     #     except Exception as e:
-    #         logger.error(f"Failed to insert document into collection '{collection_name}': {str(e)}")
+    #         self.logger.error(f"Failed to insert document into collection '{collection_name}': {str(e)}")
     #         return json.dumps({"error": f"Failed to insert document: {str(e)}"})
     
     # def update_document(
@@ -183,22 +180,22 @@ class AstraDBManager:
     #         upsert = tools_parameters.get('upsert', upsert)
     #         collection_name = tools_parameters.get('collection_name', collection_name)
         
-    #     logger.debug(f"Updating document in collection '{collection_name}' with filter: {filter_dict}, update: {update_dict}, upsert: {upsert}")
+    #     self.logger.debug(f"Updating document in collection '{collection_name}' with filter: {filter_dict}, update: {update_dict}, upsert: {upsert}")
         
     #     if not self.db:
-    #         logger.error("Astra DB not available. Check your credentials.")
+    #         self.logger.error("Astra DB not available. Check your credentials.")
     #         return json.dumps({"error": "Astra DB not available. Check your credentials."})
     #     try:
     #         target_collection = self.db.get_collection(collection_name)
     #         if not target_collection:
-    #             logger.error(f"Collection '{collection_name}' not available.")
+    #             self.logger.error(f"Collection '{collection_name}' not available.")
     #             return json.dumps({"error": "Collection not available."})
     #         result = target_collection.update_one(
     #             filter_dict,
     #             update_dict,
     #             upsert=upsert
     #         )
-    #         logger.info(f"Updated document in collection '{collection_name}': matched={result.matched_count}, modified={result.modified_count}")
+    #         self.logger.info(f"Updated document in collection '{collection_name}': matched={result.matched_count}, modified={result.modified_count}")
     #         return json.dumps({
     #             "success": True,
     #             "matched_count": result.matched_count,
@@ -206,7 +203,7 @@ class AstraDBManager:
     #             "upserted_id": str(result.upserted_id) if hasattr(result, 'upserted_id') and result.upserted_id else None
     #         })
     #     except Exception as e:
-    #         logger.error(f"Failed to update document in collection '{collection_name}': {str(e)}")
+    #         self.logger.error(f"Failed to update document in collection '{collection_name}': {str(e)}")
     #         return json.dumps({"error": f"Failed to update document: {str(e)}"})
     
     # def delete_document(
@@ -223,44 +220,44 @@ class AstraDBManager:
     #         filter_dict = tools_parameters.get('filter_dict', filter_dict)
     #         collection_name = tools_parameters.get('collection_name', collection_name)
         
-    #     logger.debug(f"Deleting document from collection '{collection_name}' with filter: {filter_dict}")
+    #     self.logger.debug(f"Deleting document from collection '{collection_name}' with filter: {filter_dict}")
         
     #     if not self.db:
-    #         logger.error("Astra DB not available. Check your credentials.")
+    #         self.logger.error("Astra DB not available. Check your credentials.")
     #         return json.dumps({"error": "Astra DB not available. Check your credentials."})
     #     try:
     #         target_collection = self.db.get_collection(collection_name)
     #         if not target_collection:
-    #             logger.error(f"Collection '{collection_name}' not available.")
+    #             self.logger.error(f"Collection '{collection_name}' not available.")
     #             return json.dumps({"error": "Collection not available."})
     #         result = target_collection.delete_one(filter_dict)
-    #         logger.info(f"Deleted {result.deleted_count} document(s) from collection '{collection_name}'")
+    #         self.logger.info(f"Deleted {result.deleted_count} document(s) from collection '{collection_name}'")
     #         return json.dumps({
     #             "success": True,
     #             "deleted_count": result.deleted_count
     #         })
     #     except Exception as e:
-    #         logger.error(f"Failed to delete document from collection '{collection_name}': {str(e)}")
+    #         self.logger.error(f"Failed to delete document from collection '{collection_name}': {str(e)}")
     #         return json.dumps({"error": f"Failed to delete document: {str(e)}"})
     
     def list_collections(self = None) -> str:
         """
         List all collections in the Astra DB database.
         """
-        logger.debug("Listing all collections in Astra DB")
+        self.logger.debug("Listing all collections in Astra DB")
         
         if not self.db:
-            logger.error("Astra DB not available. Check your credentials.")
+            self.logger.error("Astra DB not available. Check your credentials.")
             return json.dumps({"error": "Astra DB not available. Check your credentials."})
         try:
             collections = self.db.list_collection_names()
-            logger.info(f"Found {len(collections)} collections: {collections}")
+            self.logger.info(f"Found {len(collections)} collections: {collections}")
             return json.dumps({
                 "success": True,
                 "collections": collections
             })
         except Exception as e:
-            logger.error(f"Failed to list collections: {str(e)}")
+            self.logger.error(f"Failed to list collections: {str(e)}")
             return json.dumps({"error": f"Failed to list collections: {str(e)}"})
     
     def get_collection_info(
@@ -275,26 +272,26 @@ class AstraDBManager:
         if tools_parameters:
             collection_name = tools_parameters.get('collection_name', collection_name)
         
-        logger.debug(f"Getting collection info for '{collection_name}'")
+        self.logger.debug(f"Getting collection info for '{collection_name}'")
         
         if not self.db:
-            logger.error("Astra DB not available. Check your credentials.")
+            self.logger.error("Astra DB not available. Check your credentials.")
             return json.dumps({"error": "Astra DB not available. Check your credentials."})
         try:
             target_collection = self.db.get_collection(collection_name)
             if not target_collection:
-                logger.error(f"Collection '{collection_name}' not available.")
+                self.logger.error(f"Collection '{collection_name}' not available.")
                 return json.dumps({"error": "Collection not available."})
             info = target_collection.find_one()
             has_documents = info is not None
-            logger.info(f"Collection '{collection_name}' info: has_documents={has_documents}")
+            self.logger.info(f"Collection '{collection_name}' info: has_documents={has_documents}")
             return json.dumps({
                 "success": True,
                 "collection_name": target_collection.name,
                 "has_documents": has_documents
             })
         except Exception as e:
-            logger.error(f"Failed to get collection info for '{collection_name}': {str(e)}")
+            self.logger.error(f"Failed to get collection info for '{collection_name}': {str(e)}")
             return json.dumps({"error": f"Failed to get collection info: {str(e)}"})
 
 # Create a global instance

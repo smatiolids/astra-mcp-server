@@ -17,7 +17,7 @@ class LoggerConfig:
         self,
         name: str = "astra_mcp_server",
         level: str = "INFO",
-        log_file: Optional[str] = None,
+        log_file: Optional[str] = "logs/logs.log",
         format_string: Optional[str] = None
     ):
         self.name = name
@@ -36,11 +36,11 @@ class LoggerConfig:
         # Create formatter
         formatter = logging.Formatter(self.format_string)
         
-        # Console handler
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(self.level)
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
+        # Console handler removed - all logs go to file only
+        # console_handler = logging.StreamHandler(sys.stdout)
+        # console_handler.setLevel(self.level)
+        # console_handler.setFormatter(formatter)
+        # logger.addHandler(console_handler)
         
         # File handler (if log_file is specified)
         if self.log_file:

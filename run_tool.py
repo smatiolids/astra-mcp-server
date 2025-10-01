@@ -5,9 +5,10 @@ from logger import get_logger
 import mcp.types as types
 import json
 from database import AstraDBManager
+import os
 
 class RunToolMiddleware(Middleware):
-    logger = get_logger("RunToolMiddleware")
+    logger = get_logger("RunToolMiddleware",level=os.getenv("LOG_LEVEL"))
     def __init__(self, astra_db_manager: AstraDBManager, tools_config: dict):
         self.astra_db_manager = astra_db_manager
         self.tools_config = tools_config
@@ -30,7 +31,7 @@ class RunToolMiddleware(Middleware):
             self.logger.info(f"Tool config: {tool_config}")
             
         if tool_config["method"] == "find_documents":
-            result = await self.astra_db_manager.find_documents(
+            result = self.astra_db_manager.find_documents(
                 search_query=arguments["search_query"],
                 limit=tool_config.get("limit", 10),
                 projection=tool_config.get("projection", {}),
@@ -38,7 +39,7 @@ class RunToolMiddleware(Middleware):
             self.logger.debug(f"Result: {result}")
             return ToolResult(result)
         if tool_config["method"] == "list_collections":
-            result = await self.astra_db_manager.list_collections()
+            result = self.astra_db_manager.list_collections()
             self.logger.debug(f"Result: {result}")
             return ToolResult(result)
         else:   
