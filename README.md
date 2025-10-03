@@ -89,7 +89,7 @@ Save the json document to the file or to the Astra DB collection. When the serve
 
 After storing on Astra DB, the tools will appear in the Astra DB collection like this:
 
-![MCP Tool stored on Astra](docs/astra-mcp-server-tools.png)
+![MCP Tool stored on Astra](docs/astra-mcp-server-tool.png)
 
 # Local Development
 
