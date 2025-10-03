@@ -6,11 +6,11 @@ readme = "README.md"
 requires-python = ">=3.12"
 
 authors = [
-    {name = "Samuel Matioli", email = "samuel.matioli@ibm.com"},
-    {name = "Samuel Matioli", email = "smatioli@gmail.com"}
+    {name = "Samuel Matioli", email = "smatioli@gmail.com"},
+    {name = "Samuel Matioli", email = "samuel.matioli@ibm.com"}
 ]
 
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 keywords = ["mcp", "astra", "datastax", "server"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -23,7 +23,6 @@ classifiers = [
 dependencies = [
     "astrapy>=2.0.1",
     "fastmcp>=2.12.1",
-    "pytest>=8.4.2",
     "python-dotenv>=1.1.1",
     "uvicorn[standard]>=0.30.0",
 ]
