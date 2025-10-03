@@ -2,6 +2,8 @@
 
 A Model Context Protocol (MCP) server for interacting with Astra DB (DataStax Astra).
 
+![Astra MCP Server Overview](docs/astra-mcp-server-overview.png)
+
 ## Running it as MCP Server with STDIO
 
 To run the astra-mcp-server as MCP Server with STDIO, you can use the following command:
