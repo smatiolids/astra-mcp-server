@@ -39,12 +39,17 @@ class ToolLoader:
             parameters["properties"] = {}
             
         for param in config["parameters"]:
-            if "value" in param:
+            if "value" in param: # If the parameter has a value, it is not sent to the MCP Client
                 continue
+            
             parameters["properties"][param["param"]] = {
-                "type": param["type"],
+                "type": param.get("type", "string"),
                 "description": param["description"],
             }
+            
+            if "enum" in param:
+                parameters["properties"][param["param"]]["enum"] = param["enum"]
+                
             if "required" in param:
                 parameters["required"].append(param["param"])
 

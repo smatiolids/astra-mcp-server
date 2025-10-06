@@ -6,7 +6,6 @@ Database operations and utilities for interacting with Astra DB.
 
 import asyncio
 import json
-from fastmcp import Context
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 
@@ -14,6 +13,7 @@ from dotenv import load_dotenv
 from astrapy import DataAPIClient
 from logger import get_logger
 from utils import remove_underscore_from_dict_keys
+from embedding import generate_embedding
 
 # Load environment variables
 load_dotenv()
@@ -82,6 +82,7 @@ class AstraDBManager:
         sort: Optional[Dict[str, int]] = None,
         projection: Optional[Dict[str, int]] = None,
         collection_name: Optional[str] = None,
+        tool_config: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Find documents in Astra DB collection.
@@ -93,7 +94,7 @@ class AstraDBManager:
         # sort = tools_parameters["sort"]
         # projection = tools_parameters["projection"]
         
-        self.logger.info(f"Finding documents in collection '{collection_name}' with filter: {filter_dict}, limit: {limit}")
+        self.logger.info(f"Finding documents in collection '{collection_name}' with filter: {filter_dict}, limit: {limit}, search_query: {search_query}")
         
         if not self.db:
             self.logger.error("Astra DB not available. Check your credentials.")
@@ -111,7 +112,19 @@ class AstraDBManager:
                 find_params["limit"] = limit
             
             if search_query:
-                find_params["sort"] = {"$vectorize": search_query}
+                search_query_config = next((p for p in tool_config["parameters"] if p["param"] == "search_query"), None)
+                if "embedding_model" in search_query_config:
+                    try:    
+                        embedding = generate_embedding(search_query, search_query_config["embedding_model"])
+                        find_params["sort"] = {"$vector": embedding}
+                    except Exception as e:
+                        self.logger.error(f"Failed to generate embedding: {str(e)}")
+                        return json.dumps({"error": f"Failed to generate embedding: {str(e)}"})
+                elif search_query_config["attribute"] == "$vectorize":
+                    find_params["sort"] = {"$vectorize": search_query}
+                else:
+                    self.logger.error("Search query attribute must be $vectorize or $vector")
+                    return json.dumps({"error": "Search query attribute must be $vectorize or $vector"})
             elif sort:
                 find_params["sort"] = sort
             

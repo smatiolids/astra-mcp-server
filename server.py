@@ -26,7 +26,7 @@ async def main():
     parser.add_argument("--workers", type=int, default=1, help="Number of worker processes")
     parser.add_argument("--log-level", type=str, default="info", help="Logging level")
     parser.add_argument("--log-file", type=str, default="logs.log", help="Logging file")
-    parser.add_argument("--transport", "-tr", default="http")
+    parser.add_argument("--transport", "-tr", default="stdio")
 
     # ---- Astra MCP Server params ----
     parser.add_argument("--astra_token", "-t", default=os.getenv("ASTRA_DB_APPLICATION_TOKEN"))
@@ -39,7 +39,7 @@ async def main():
     args = parser.parse_args()
     
     # Initialize MCP
-    mcp = FastMCP("Astra MCP Server")
+    mcp = FastMCP("Astra MCP Server", )
     astra_db_manager = AstraDBManager(args.astra_token, args.astra_endpoint)
     
     # Load tools config content

@@ -20,7 +20,7 @@ class RunToolMiddleware(Middleware):
             
         tool_name = context.message.name
         
-        self.logger.debug(f"Tool name: {tool_name}")
+        self.logger.info(f"Tool name: {tool_name}")
         
         arguments = context.message.arguments
         self.logger.debug(f"Arguments: {arguments}")        
@@ -34,6 +34,10 @@ class RunToolMiddleware(Middleware):
             
         filter_dict = {}
         for param in tool_config["parameters"]:
+            
+            if param["attribute"] == "$vector" or param["attribute"] == "$vectorize":
+                continue
+            
             operator = "$eq"
             if "operator" in param:
                 operator = param["operator"]
@@ -49,7 +53,8 @@ class RunToolMiddleware(Middleware):
                 filter_dict=filter_dict,
                 limit=tool_config.get("limit", 10),
                 projection=tool_config.get("projection", {}),
-                collection_name=tool_config["collection_name"])
+                collection_name=tool_config["collection_name"],
+                tool_config=tool_config)
             
             self.logger.debug(f"Result: {result}")
             return ToolResult(result)

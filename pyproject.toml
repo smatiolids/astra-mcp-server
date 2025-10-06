@@ -1,6 +1,6 @@
 [project]
 name = "astra-mcp-server"
-version = "0.0.1"
+version = "0.0.2"
 description = "Astra MCP Server"
 readme = "README.md"
 requires-python = ">=3.12"

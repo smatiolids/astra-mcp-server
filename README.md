@@ -24,6 +24,9 @@ uvx astra-mcp-server
 - `--transport <transport>`: The transport to use for the MCP Server. Valid values are `stdio` and `http`. Default is `stdio`.
 - `--astra_token <astra_token>`: The Astra token to use for the Astra DB connection. If not filled, the app will try to get the token from the `ASTRA_DB_APPLICATION_TOKEN` environment variable.
 - `--astra_endpoint <astra_endpoint>`: The Astra endpoint to use for the Astra DB connection. If not filled, the app will try to get the endpoint from the `ASTRA_DB_API_ENDPOINT` environment variable.
+- `--tags <tags>`: The tags to filter the tools for the MCP Server. 
+
+## Catalog options
 - `--catalog_file <catalog_file>`: The catalog file to use for the MCP Server. Default is `tools_config.json`. If not filled, the app will try to get the catalog from the `ASTRA_DB_CATALOG_COLLECTION` environment variable.
 - `--catalog_collection <catalog_collection>`: The catalog collection to use for the MCP Server. Default is `tool_catalog`. If not filled, the app will try to get the catalog from the `ASTRA_DB_CATALOG_COLLECTION` environment variable.
 
@@ -53,7 +56,15 @@ LOG_FILE=./logs/logs.log
 # Logging Configuration (optional)
 LOG_LEVEL=INFO
 LOG_FILE=logs/astra_mcp_server.log
+
+#Embedding Configuration
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_BASE_URL=your_openai_base_url
+IBM_WATSONX_API_KEY=your_ibm_watsonx_api_key
+IBM_WATSONX_BASE_URL=your_ibm_watsonx_base_url
+IBM_WATSONX_PROJECT_ID=your_ibm_watsonx_project_id
 ```
+
 # Creating tools
 
 Tools are created based on a json specification. It can be save to a file or to a Astra DB collection (preferable for production use cases).
@@ -61,6 +72,8 @@ Tools are created based on a json specification. It can be save to a file or to 
 A tools specifiction json needs the following fields:
 ```json
 {
+        "tags": ["products"], // The tags of the tool - Filter if needed
+        "type": "tool", // The type of the tool
         "name": "search_products", // The name of the tool
         "description": "Search for products", // The description of the tool to the MCP Client
         "limit": 10, // The limit of the tool
@@ -71,13 +84,16 @@ A tools specifiction json needs the following fields:
             {  
                 "param": "search_query", // The name of the parameter
                 "description": "Query to search for products", // The description of the parameter
-                "attribute": "$vectorize", // The attribute of the parameter
+                "attribute": "$vectorize", // The attribute of the parameter... or $vectorize
                 "type": "string", // The type of the parameter
-                "required": 1 // Whether the parameter is required
+                "required": 1, // Whether the parameter is required
+                "operator": "$eq", // The operator to use to filter the parameter - if not filled, the operator is $eq
+                "enum": ["baggage", "boarding", "check-in", "flight-status", "other"], // The enum of the parameter
+                "embedding_model": "text-embedding-3-small" // The embedding model to use to generate the embedding
             },
             {  
                 "param": "in_stock", // The name of the parameter 
-                "value": 1, // The value of the parameter - IF FILLED, THE PARAMETER IS NOT SENT TO THE MCP CLIENT and applied by the server
+                "value": true, // The value of the parameter - IF FILLED, THE PARAMETER IS NOT SENT TO THE MCP CLIENT and applied by the server
                 "attribute": "in_stock" // The attribute of the parameter
             }
         ],
@@ -90,6 +106,14 @@ Save the json document to the file or to the Astra DB collection. When the serve
 After storing on Astra DB, the tools will appear in the Astra DB collection like this:
 
 ![MCP Tool stored on Astra](docs/astra-mcp-server-tool.png)
+
+# Updating tools
+
+To update the tools, you can update the json document and save it to the file or to the Astra DB collection.
+
+```bash
+python catalog.py -f tools_config_example.json -t tool_catalog
+```
 
 # Local Development
 

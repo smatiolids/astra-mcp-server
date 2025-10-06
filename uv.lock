@@ -31,7 +31,6 @@ source = { editable = "." }
 dependencies = [
     { name = "astrapy" },
     { name = "fastmcp" },
-    { name = "pytest" },
     { name = "python-dotenv" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -48,7 +47,6 @@ dev = [
 requires-dist = [
     { name = "astrapy", specifier = ">=2.0.1" },
     { name = "fastmcp", specifier = ">=2.12.1" },
-    { name = "pytest", specifier = ">=8.4.2" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30.0" },
 ]
