@@ -131,7 +131,7 @@ class AstraDBManager:
             if projection:
                 find_params["projection"] = projection
             
-            self.logger.info("find_params %s", find_params)
+            self.logger.debug("find_params %s", find_params)
 
             result = target_collection.find(**find_params)
             documents = list(result)
