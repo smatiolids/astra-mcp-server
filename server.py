@@ -34,6 +34,8 @@ async def main():
     parser.add_argument("--catalog_file", "-f")
     parser.add_argument("--catalog_collection", "-c", default=os.getenv("ASTRA_DB_CATALOG_COLLECTION") or "tool_catalog")
     
+    parser.add_argument("--tags", "-tags")
+    
     args = parser.parse_args()
     
     # Initialize MCP
@@ -47,7 +49,7 @@ async def main():
         tools_config_content = json.load(open(args.catalog_file))
     else:
         logger.info(f"Loading tools Astra collection {args.catalog_collection}")
-        tools_config_content = astra_db_manager.get_catalog_content(collection_name=args.catalog_collection)
+        tools_config_content = astra_db_manager.get_catalog_content(collection_name=args.catalog_collection, tags=args.tags)
 
     logger.info(f"Tools config content: {tools_config_content}")
        

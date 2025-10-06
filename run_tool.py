@@ -18,26 +18,43 @@ class RunToolMiddleware(Middleware):
         if not context.fastmcp_context:
             ToolError("No context found")
             
-        self.logger.info("RunToolMiddleware: on_run_tool")
-        self.logger.info(context.message)
-        self.logger.info(context.message.arguments)
         tool_name = context.message.name
+        
+        self.logger.debug(f"Tool name: {tool_name}")
+        
         arguments = context.message.arguments
-        self.logger.info(f"Tool name: {tool_name}")
+        self.logger.debug(f"Arguments: {arguments}")        
+        
         tool_config = next((t for t in self.tools_config if t['name'] == tool_name), None)
+        
         if not tool_config:
             ToolError(f"Tool {tool_name} not found")
         else:
-            self.logger.info(f"Tool config: {tool_config}")
+            self.logger.debug(f"Tool config: {tool_config}")
             
+        filter_dict = {}
+        for param in tool_config["parameters"]:
+            operator = "$eq"
+            if "operator" in param:
+                operator = param["operator"]
+                
+            if "value" in param:
+                filter_dict[param["attribute"]] = {operator: param["value"]}
+            else:
+                filter_dict[param["attribute"]] = {operator: arguments[param["param"]]}
+
         if tool_config["method"] == "find_documents":
             result = self.astra_db_manager.find_documents(
-                search_query=arguments["search_query"],
+                search_query=arguments.get("search_query", None),
+                filter_dict=filter_dict,
                 limit=tool_config.get("limit", 10),
                 projection=tool_config.get("projection", {}),
                 collection_name=tool_config["collection_name"])
+            
             self.logger.debug(f"Result: {result}")
             return ToolResult(result)
+        
+
         if tool_config["method"] == "list_collections":
             result = self.astra_db_manager.list_collections()
             self.logger.debug(f"Result: {result}")

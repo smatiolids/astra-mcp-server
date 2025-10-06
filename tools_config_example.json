@@ -1,11 +1,15 @@
 [
-    {
+    {   
+        "tags": ["astradb"],
+        "type": "tool",
         "name": "collections",
         "description": "List all collections in the Astra DB database",
         "parameters": [],
         "method": "list_collections"
     },
     {
+        "tags": ["products"],
+        "type": "tool",
         "name": "search_products",
         "description": "Search for products",
         "parameters": [
@@ -19,7 +23,9 @@
             {  
                 "param": "in_stock",
                 "value": 1,
-                "attribute": "in_stock"
+                "attribute": "in_stock",
+                "type": "boolean",
+                "operator": "$eq"
             }
         ],
         "method": "find_documents",
@@ -27,6 +33,8 @@
         "limit": 10
     },
     {
+        "tags": ["latam", "faq"],
+        "type": "tool",
         "name": "rag_latam_airlines",
         "method": "find_documents",
         "collection_name": "latam_faq",
@@ -39,11 +47,21 @@
                 "description": "Query to search for products",
                 "attribute": "$vectorize",
                 "type": "string"
+            },
+            {
+                "param": "topic",
+                "description": "Topic of the question",
+                "attribute": "metadata.topic",
+                "type": "string",
+                "enum": ["baggage", "boarding", "check-in", "flight-status", "other"],
+                "operator": "$eq"
             }
         ]
     },
     {
+        "tags": ["united", "faq"],
         "name": "rag_united",
+        "type": "tool",
         "method": "find_documents",
         "collection_name": "united_faq",
         "description": "Search the UNITED Airlines FAQ for a question and return relevant context",

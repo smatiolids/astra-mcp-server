@@ -22,10 +22,6 @@ class ToolLoader:
 
     def load_database_tools(self):
         """Load all database tools dynamically"""
-        self.tools["find_documents"] = self.mcp.tool(
-            self.astra_db_manager.find_documents)
-        self.tools["list_collections"] = self.mcp.tool(
-            self.astra_db_manager.list_collections)
         for tool_config in self.tools_config:
             tool = self.generate_tool(config=tool_config)
             self.mcp.add_tool(tool)

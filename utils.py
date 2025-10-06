@@ -1,7 +1,7 @@
 from typing import Any
 
 
-def rename_dict_keys(data: Any) -> Any:
+def remove_underscore_from_dict_keys(data: Any) -> Any:
     """
     Recursively rename dictionary keys by replacing '_$' with '$' only when it starts the key.
     
@@ -21,11 +21,11 @@ def rename_dict_keys(data: Any) -> Any:
             else:
                 new_key = key
             # Recursively process the value
-            new_dict[new_key] = rename_dict_keys(value)
+            new_dict[new_key] = remove_underscore_from_dict_keys(value)
         return new_dict
     elif isinstance(data, list):
         # Process each item in the list
-        return [rename_dict_keys(item) for item in data]
+        return [remove_underscore_from_dict_keys(item) for item in data]
     else:
         # Return primitive values as-is
         return data

@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 from astrapy import DataAPIClient
 from logger import get_logger
-from utils import rename_dict_keys
+from utils import remove_underscore_from_dict_keys
 
 # Load environment variables
 load_dotenv()
@@ -54,11 +54,16 @@ class AstraDBManager:
         except Exception as e:
             self.logger.error(f"Could not connect to Astra DB: {e}")
     
-    def get_catalog_content(self, collection_name: str) -> str:
+    def get_catalog_content(self, collection_name: str, tags: Optional[str] = None) -> str:
         """Get catalog content from Astra DB collection."""
         collection =  self.db.get_collection(collection_name)
-        result = collection.find({})
-        result = rename_dict_keys(list(result))
+        self.logger.info(f"Getting catalog content from {collection_name} with tags: {tags}")
+        result = None
+        if tags:
+            result = collection.find({"type": "tool", "tags": {"$in": tags.split(",")}})
+        else:
+            result = collection.find({"type": "tool",})
+        result = remove_underscore_from_dict_keys(list(result))
         return result
     
     def get_dbs(self) -> str:
