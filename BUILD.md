@@ -2,6 +2,15 @@
 
 This document provides instructions for building the package and creating new releases.
 
+## TLDR
+
+```bash
+uv pip install --upgrade build
+uv pip install --upgrade twine
+uv build
+uv twine upload dist/*
+```
+
 ## Prerequisites
 
 Make sure you have the following tools installed:
@@ -134,17 +143,6 @@ twine upload dist/*
 git push origin main
 ```
 
-## Version Numbering
-
-Follow [Semantic Versioning](https://semver.org/) guidelines:
-- **MAJOR** version for incompatible API changes
-- **MINOR** version for backwards-compatible functionality additions
-- **PATCH** version for backwards-compatible bug fixes
-
-Examples:
-- `0.0.1` → `0.0.2` (patch release)
-- `0.0.2` → `0.1.0` (minor release)
-- `0.1.0` → `1.0.0` (major release)
 
 ## Troubleshooting
 
@@ -154,19 +152,3 @@ Examples:
 2. **Build failures**: Check that all dependencies are properly specified
 3. **Upload failures**: Verify PyPI credentials and package name availability
 
-### Useful Commands
-
-```bash
-# List existing tags
-git tag --list
-
-# Delete a tag (if needed)
-git tag -d v0.0.2
-git push origin --delete v0.0.2
-
-# Check package contents
-python -m zipfile -l dist/astra_mcp_server-0.0.2-py3-none-any.whl
-
-# Install package locally for testing
-pip install dist/astra_mcp_server-0.0.2-py3-none-any.whl
-```

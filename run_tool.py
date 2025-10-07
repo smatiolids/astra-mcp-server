@@ -47,9 +47,9 @@ class RunToolMiddleware(Middleware):
 
             if "value" in param:
                 filter_dict[param["attribute"]] = {operator: param["value"]}
-            elif arguments.get(param["param"], None) is None and param["required"] == 1:
+            elif param["param"] not in arguments and param.get("required", False) == True:
                 ToolError(f"Parameter {param['param']} is required")
-            elif arguments.get(param["param"], None) is not None:
+            elif param["param"] in arguments:
                 filter_dict[param["attribute"]] = {
                     operator: arguments[param["param"]]}
 

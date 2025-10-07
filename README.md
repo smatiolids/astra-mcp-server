@@ -139,11 +139,3 @@ uv run uvicorn server:main --factory --reload --port 5150 --log-level debug
 npx @modelcontextprotocol/inspector uv run astra-mcp-server --log-level debug -tr stdio
 ```
 
-# Distribution
-
-```bash
-uv pip install --upgrade build
-uv pip install --upgrade twine
-uv build
-uv twine upload dist/*
-```
