@@ -9,7 +9,11 @@ from logger import get_logger
 from run_tool import RunToolMiddleware
 import uvicorn
 import asyncio
+from fastmcp.server.auth.providers.jwt import StaticTokenVerifier
+
 load_dotenv(override=True)
+
+# Define development tokens and their associated claims
 
 # Initialize logger
 logger = get_logger("astra_mcp_server",level=os.getenv("LOG_LEVEL"))
@@ -38,8 +42,22 @@ async def main():
     
     args = parser.parse_args()
     
+    
+    # Configure JWT verifier
+    # verifier = StaticTokenVerifier(
+    #     tokens={
+    #         "astra-mcp-server-token": {
+    #             "client_id": "astra-mcp-server",
+    #             "scopes": ["read:data", "write:data", "admin:users"]
+    #         },
+    #     },
+    #     required_scopes=["read:data", "write:data", "admin:users"]
+    # ) 
+    
     # Initialize MCP
-    mcp = FastMCP("Astra MCP Server", )
+    mcp = FastMCP("Astra MCP Server")
+    # mcp = FastMCP("Astra MCP Server", auth=verifier)
+    
     astra_db_manager = AstraDBManager(args.astra_token, args.astra_endpoint)
     
     # Load tools config content
@@ -57,7 +75,7 @@ async def main():
     mcp.add_middleware(RunToolMiddleware(astra_db_manager,tools_config_content))
     
     logger.info("Initializing Astra MCP Server")
-    logger.info("Starting Astra MCP Server on port 5150")
+    logger.info(f"Starting Astra MCP Server on port {args.port}")
     
     # Generate tools based on tools config content
     tool_loader = ToolLoader(mcp, astra_db_manager,tools_config_content)
@@ -67,7 +85,7 @@ async def main():
     
     app = None
     # Return the appropriate transport app
-    if args.transport == "http":
+    if args.transport == "http" or args.transport == "sse":
         await mcp.run_async(transport=args.transport, host=args.host, port=args.port, log_level=args.log_level)
     elif args.transport == "stdio":
         await mcp.run_async(transport=args.transport, log_level=args.log_level)
