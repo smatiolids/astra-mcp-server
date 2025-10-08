@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 from astrapy import DataAPIClient
 from logger import get_logger
-from utils import remove_underscore_from_dict_keys
+from utils import remove_underscore_from_dict_keys, extract_db_id_from_astra_url
 from embedding import generate_embedding
 
 # Load environment variables
@@ -28,35 +28,63 @@ class AppContext:
 class AstraDBManager:
     """Manager class for Astra DB operations."""
     logger = get_logger("Astra DB Manager")
-    def __init__(self, astra_db_token: str, astra_db_api_endpoint: str):
-        self.astra_db_token = astra_db_token
-        self.astra_db_api_endpoint = astra_db_api_endpoint
+    
+    def __init__(self, token: str, endpoint: str, db_name: str):
+        self.astra_db_token = token
+        self.astra_db_api_endpoint = endpoint
+        self.astra_db_db_name = db_name
         self.client = None
-        self.db = None
+        self.db = {}
         self._initialize_database()
     
     def _initialize_database(self):
         """Initialize Astra DB connection."""
         
-        if not self.astra_db_token or not self.astra_db_api_endpoint:
-            self.logger.error("Astra DB credentials not found. Set ASTRA_DB_APPLICATION_TOKEN and ASTRA_DB_API_ENDPOINT environment variables.")
+        if not self.astra_db_token or (not self.astra_db_db_name and not self.astra_db_api_endpoint):
+            self.logger.error("Astra DB credentials not found. Set ASTRA_DB_APPLICATION_TOKEN and ASTRA_DB_API_ENDPOINT or ASTRA_DB_DB_NAME environment variables.")
             return
         
         try:
             self.client = DataAPIClient()
-            self.db = self.client.get_database(
-                self.astra_db_api_endpoint,
-                token=self.astra_db_token
-            )
-            self.logger.debug("available collections: %s", self.db.list_collection_names())
+            # to keep compatibility with the old version
+            if not self.astra_db_db_name:
+                db_list = self.get_dbs()
+                if self.astra_db_api_endpoint:
+                    catalog_db_id = extract_db_id_from_astra_url(self.astra_db_api_endpoint)
+                    catalog_db = next((db for db in db_list if db.id == catalog_db_id), None)    
+                    self.astra_db_db_name = catalog_db.name
+                else:
+                    # If no db name or api endpoint, use the first db
+                    self.astra_db_db_name = db_list[0].name
+                
+            self.logger.debug("available collections: %s", self.get_db_by_name(self.astra_db_db_name).list_collection_names())
             
             self.logger.info("Connected to Astra DB successfully")
         except Exception as e:
             self.logger.error(f"Could not connect to Astra DB: {e}")
     
+    def get_db_by_name(self, db_name: str):
+        if db_name not in self.db:
+            db_list = self.get_dbs()
+            self.logger.debug("db_list: %s", db_list)
+            new_db = next((db for db in db_list if db.name == db_name), None)
+            if not new_db:
+                self.logger.error(f"Database {db_name} not found.")
+                return
+            
+            self.logger.debug("new_db: %s", new_db)
+            
+            self.db[db_name] = self.client.get_database(
+                new_db.regions[0].api_endpoint,
+                token=self.astra_db_token
+            )
+            
+        return self.db[db_name]
+    
     def get_catalog_content(self, collection_name: str, tags: Optional[str] = None) -> str:
         """Get catalog content from Astra DB collection."""
-        collection =  self.db.get_collection(collection_name)
+        db = self.get_db_by_name(self.astra_db_db_name)
+        collection =  db.get_collection(collection_name)
         self.logger.info(f"Getting catalog content from {collection_name} with tags: {tags}")
         result = None
         if tags:
@@ -66,13 +94,9 @@ class AstraDBManager:
         result = remove_underscore_from_dict_keys(list(result))
         return result
     
-    def get_dbs(self) -> str:
+    def get_dbs(self) -> [Any]:
         admin_client = self.client.get_admin(token=self.astra_db_token)
-        db_list = admin_client.list_databases()
-        return json.dumps({
-            "success": True,
-            "dbs": db_list
-        })
+        return admin_client.list_databases()
     
     def find_documents(
         self,
@@ -86,21 +110,12 @@ class AstraDBManager:
     ) -> str:
         """
         Find documents in Astra DB collection.
-        """
-        
-        # collection_name = tools_parameters["collection_name"]
-        # filter_dict = tools_parameters["filter_dict"]
-        # limit = tools_parameters["limit"]
-        # sort = tools_parameters["sort"]
-        # projection = tools_parameters["projection"]
-        
+        """        
         self.logger.info(f"Finding documents in collection '{collection_name}' with filter: {filter_dict}, limit: {limit}, search_query: {search_query}")
         
-        if not self.db:
-            self.logger.error("Astra DB not available. Check your credentials.")
-            return json.dumps({"error": "Astra DB not available. Check your credentials."})
         try:
-            target_collection = self.db.get_collection(collection_name)
+            db = self.get_db_by_name(tool_config["db_name"] if "db_name" in tool_config else self.astra_db_db_name)
+            target_collection = db.get_collection(collection_name)
             if not target_collection:
                 self.logger.error(f"Collection '{collection_name}' not available.")
                 return json.dumps({"error": "Collection not available."})

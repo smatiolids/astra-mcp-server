@@ -1,4 +1,25 @@
+import re
 from typing import Any
+
+
+def extract_db_id_from_astra_url(url: str) -> str:
+    """
+    Extract UUID from Astra URL.
+    
+    Args:
+        url: Astra URL in format https://uuid-region.apps.astra.datastax.com
+    
+    Returns:
+        The UUID string (e.g., "4dcd68d4-978d-45c6-a6b5-505416f98a61")
+    """
+    # Pattern to match UUID followed by region in Astra URL
+    pattern = r'https://([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})-'
+    match = re.search(pattern, url)
+    
+    if match:
+        return match.group(1)
+    else:
+        raise ValueError(f"Could not extract UUID from URL: {url}")
 
 
 def remove_underscore_from_dict_keys(data: Any) -> Any:

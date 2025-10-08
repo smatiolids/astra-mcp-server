@@ -51,6 +51,7 @@
     {
         "tags": ["latam", "faq"],
         "type": "tool",
+        "db_name": "latam_db",
         "name": "rag_latam_airlines",
         "method": "find_documents",
         "collection_name": "latam_faq",
