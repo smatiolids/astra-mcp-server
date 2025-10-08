@@ -26,6 +26,14 @@ To access the tools provided by astra-mcp-server as MCP Server with Langflow, yo
 
 ![Astra MCP Server with Langflow](docs/langflow-stdio.png)
 
+After adding the MCP Server, you can connect it to an Agent component:
+
+![Astra MCP Server with Langflow](docs/langflow-mcp-flow.png)
+
+The tool names and descriptions are loaded from the catalog collection in Astra DB.
+
+![Astra MCP Server with Langflow](docs/langflow-mcp-tools.png)
+
 ### Running it as MCP Server with IBM Orchestrate
 
 To access the tools provided by astra-mcp-server as MCP Server with IBM Orchestrate, you can add an MCP Server with the following configuration:
@@ -91,9 +99,7 @@ IBM_WATSONX_PROJECT_ID=your_ibm_watsonx_project_id
 
 The catalog is the collection of tools that the MCP Server will provide to the MCP Clients/Agents. It can be save to a file or to a Astra DB collection (preferable for production use cases).
 
-Tools are created based on a json specification. It can be save to a file or to a Astra DB collection (preferable for production use cases).
-
-A tools specifiction json needs the following fields:
+The tools are created based on a json specification that needs the following fields:
 ```json
 {
         "tags": ["products"], // The tags of the tool - Filter if needed
