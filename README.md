@@ -4,22 +4,44 @@ A Model Context Protocol (MCP) server for interacting with Astra DB (DataStax As
 
 ![Astra MCP Server Overview](docs/astra-mcp-server-overview.png)
 
-## Running it as MCP Server with STDIO
+The astra-mcp-server that provides tools to interact with Astra DB. It is built with FastMCP and Astrapy (then Astra DB or DataStax HCD can be used as database).
+
+The server will load the tool definitions from a collection in Astra DB or a file. The tool definitions are then transformed to a function definition that can be passed to an LLM, making it possible to use the tools provided by the MCP Server in an Agentic workflow.
+
+When a tool is called, the server will call the appropriate method in Astra DB or DataStax HCD, converting the parameters to the appropriate filters and return the result to the MCP Client/Agent. If some embedding generations is required, the models from OpenAI or IBM Watsonx can be used for similarity search.
+
+## How to run the Astra MCP Server
+
+### Running it as MCP Server with STDIO
 
 To run the astra-mcp-server as MCP Server with STDIO, you can use the following command:
 
 ```bash
-uvx astra-mcp-server -tr stdio --astra_token <astra_token> --astra_endpoint <astra_endpoint>
+uvx astra-mcp-server --astra_token <astra_token> --astra_endpoint <astra_endpoint>
 ```
 
-## Running it as MCP Server with HTTP
+### Running it as MCP Server with Langflow
+
+To access the tools provided by astra-mcp-server as MCP Server with Langflow, you can add an MCP Server with the following configuration:
+
+![Astra MCP Server with Langflow](docs/langflow-stdio.png)
+
+### Running it as MCP Server with IBM Orchestrate
+
+To access the tools provided by astra-mcp-server as MCP Server with IBM Orchestrate, you can add an MCP Server with the following configuration:
+
+![Astra MCP Server with IBM Orchestrate](docs/orchestrate-stdio.png)
+
+### Running it as MCP Server with HTTP locally
 
 To run the astra-mcp-server as MCP Server with STDIO, you can use the following command:
 
 ```bash
-uvx astra-mcp-server
+uvx astra-mcp-server -tr http
 ```
-## App options
+If you have an .env file, the varriables will be considered while running the server. Otherwise, you can pass arguments to the server. Check the App options below for more details.
+
+# App options
 
 - `--transport <transport>`: The transport to use for the MCP Server. Valid values are `stdio` and `http`. Default is `stdio`.
 - `--astra_token <astra_token>`: The Astra token to use for the Astra DB connection. If not filled, the app will try to get the token from the `ASTRA_DB_APPLICATION_TOKEN` environment variable.
@@ -65,7 +87,9 @@ IBM_WATSONX_BASE_URL=your_ibm_watsonx_base_url
 IBM_WATSONX_PROJECT_ID=your_ibm_watsonx_project_id
 ```
 
-# Creating tools
+# The Tools Catalog
+
+The catalog is the collection of tools that the MCP Server will provide to the MCP Clients/Agents. It can be save to a file or to a Astra DB collection (preferable for production use cases).
 
 Tools are created based on a json specification. It can be save to a file or to a Astra DB collection (preferable for production use cases).
 
@@ -107,7 +131,7 @@ After storing on Astra DB, the tools will appear in the Astra DB collection like
 
 ![MCP Tool stored on Astra](docs/astra-mcp-server-tool.png)
 
-# Updating tools
+## Updating tools
 
 To update the tools, you can update the json document and save it to the file or to the Astra DB collection.
 
