@@ -81,6 +81,7 @@ setup(
     entry_points={
         "console_scripts": [
             "astra-mcp-server=astra_mcp_server.server:run_server",
+            "astra-mcp-catalog=astra_mcp_server.catalog:main",
         ],
     },
     include_package_data=True,

@@ -142,7 +142,15 @@ After storing on Astra DB, the tools will appear in the Astra DB collection like
 To update the tools, you can update the json document and save it to the file or to the Astra DB collection.
 
 ```bash
-python catalog.py -f tools_config_example.json -t tool_catalog
+# Upload a catalog file to Astra DB
+uv run astra-mcp-catalog -f tools_config_example.json -t tool_catalog
+
+# Upload with custom table name
+uv run astra-mcp-catalog -f my_tools.json -t my_tool_catalog
+
+# Get help
+uv run astra-mcp-catalog --help
+
 ```
 
 # Local Development
