@@ -11,9 +11,9 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 from astrapy import DataAPIClient
-from logger import get_logger
-from utils import remove_underscore_from_dict_keys, extract_db_id_from_astra_url
-from embedding import generate_embedding
+from .logger import get_logger
+from .utils import remove_underscore_from_dict_keys, extract_db_id_from_astra_url
+from .embedding import generate_embedding
 
 # Load environment variables
 load_dotenv()

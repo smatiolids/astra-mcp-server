@@ -1,7 +1,7 @@
 import time
 from typing import Any
 from fastmcp.server.auth.providers.jwt import AccessToken, TokenVerifier
-from logger import get_logger
+from .logger import get_logger
 import os
 logger = get_logger("auth")
 

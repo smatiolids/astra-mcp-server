@@ -53,15 +53,16 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
     ],
     python_requires=">=3.12",
-    packages=find_packages(exclude=["tests*", "__pycache__*"]),
+    packages=find_packages(where="src", exclude=["tests*", "__pycache__*"]),
+    package_dir={"": "src"},
     py_modules=[
-        "catalog",
-        "database", 
-        "load_tools",
-        "logger",
-        "run_tool",
-        "server",
-        "utils"
+        "astra_mcp_server.catalog",
+        "astra_mcp_server.database", 
+        "astra_mcp_server.load_tools",
+        "astra_mcp_server.logger",
+        "astra_mcp_server.run_tool",
+        "astra_mcp_server.server",
+        "astra_mcp_server.utils"
     ],
     install_requires=[
         "astrapy>=2.0.1",
@@ -79,7 +80,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "astra-mcp-server=server:run_server",
+            "astra-mcp-server=astra_mcp_server.server:run_server",
         ],
     },
     include_package_data=True,

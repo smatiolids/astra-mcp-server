@@ -1,11 +1,11 @@
 from math import e
-from database import AstraDBManager
-from logger import get_logger
+from .database import AstraDBManager
+from .logger import get_logger
 import os
 import json
 import argparse
 from dotenv import load_dotenv
-from utils import add_underscore_to_dict_keys
+from .utils import add_underscore_to_dict_keys
 load_dotenv(override=True)
 
 class AstraCatalog:

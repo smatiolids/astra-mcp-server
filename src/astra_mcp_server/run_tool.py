@@ -1,15 +1,16 @@
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 from fastmcp.exceptions import ToolError
 from fastmcp.tools.tool import ToolResult
-from logger import get_logger
+from .logger import get_logger
 import mcp.types as types
 import json
-from database import AstraDBManager
+from .database import AstraDBManager
 import os
 
 
 class RunToolMiddleware(Middleware):
-    logger = get_logger("RunToolMiddleware", level=os.getenv("LOG_LEVEL"))
+    
+    logger = get_logger("RunToolMiddleware")
 
     def __init__(self, astra_db_manager: AstraDBManager, tools_config: dict):
         self.astra_db_manager = astra_db_manager

@@ -3,11 +3,11 @@ import os
 import json
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-from astra_mcp_server.load_tools import ToolLoader
-from astra_mcp_server.database import AstraDBManager
+from .load_tools import ToolLoader
+from .database import AstraDBManager
 from fastmcp.server.dependencies import get_context
-from astra_mcp_server.logger import get_logger
-from astra_mcp_server.run_tool import RunToolMiddleware
+from .logger import get_logger
+from .run_tool import RunToolMiddleware
 import uvicorn
 import asyncio
 from fastmcp.server.auth.providers.jwt import StaticTokenVerifier, TokenVerifier

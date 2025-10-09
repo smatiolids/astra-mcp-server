@@ -2,9 +2,9 @@ from fastmcp.tools import Tool
 from fastmcp import FastMCP, Context
 from fastmcp.tools import FunctionTool
 from fastmcp.tools.tool_transform import ArgTransform, forward_raw
-from database import AstraDBManager
+from .database import AstraDBManager
 from fastmcp.server.dependencies import get_context
-from logger import get_logger
+from .logger import get_logger
 
 class ToolLoader:
     def __init__(self, mcp: FastMCP, astra_db_manager: AstraDBManager,tools_config: dict):
