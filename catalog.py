@@ -1,3 +1,4 @@
+from math import e
 from database import AstraDBManager
 from logger import get_logger
 import os
@@ -8,16 +9,26 @@ from utils import add_underscore_to_dict_keys
 load_dotenv(override=True)
 
 class AstraCatalog:
+    logger = get_logger("catalog")
+    
     def __init__(self):
-        self.astra_db_manager = AstraDBManager(os.getenv("ASTRA_DB_APPLICATION_TOKEN"), os.getenv("ASTRA_DB_API_ENDPOINT"))
-        self.logger = get_logger("catalog")
-
-    def get_catalog(self):
-        return self.astra_db_manager.get_catalog()
+        self.astra_db_name = os.getenv("ASTRA_DB_DB_NAME")
+        self.astra_db_manager = AstraDBManager(os.getenv("ASTRA_DB_APPLICATION_TOKEN"), os.getenv("ASTRA_DB_API_ENDPOINT"), self.astra_db_name)
+        self.db = self.astra_db_manager.db[self.astra_db_name]
     
     def upload_catalog(self, catalog: dict, table_name: str):
         collection_name = table_name
-        collection = self.astra_db_manager.db.get_collection(collection_name)
+        
+        list_collections = self.db.list_collection_names()
+        self.logger.info(f"List of collections: {list_collections}")
+        
+        if collection_name not in list_collections:
+            self.logger.info(f"Collection {collection_name} not found, creating it")
+            self.db.create_collection(collection_name)
+            self.logger.info(f"Collection {collection_name} created")
+        
+        collection = self.db.get_collection(collection_name)
+            
         self.logger.info(f"Deleting all catalog items from {collection_name}")
         collection.delete_many({})
         self.logger.info(f"Uploading {len(catalog)} catalog items to {collection_name}")

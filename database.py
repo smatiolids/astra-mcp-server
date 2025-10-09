@@ -81,6 +81,10 @@ class AstraDBManager:
             
         return self.db[db_name]
     
+    def get_dbs(self) -> [Any]:
+        admin_client = self.client.get_admin(token=self.astra_db_token)
+        return admin_client.list_databases()
+
     def get_catalog_content(self, collection_name: str, tags: Optional[str] = None) -> str:
         """Get catalog content from Astra DB collection."""
         db = self.get_db_by_name(self.astra_db_db_name)
@@ -94,9 +98,6 @@ class AstraDBManager:
         result = remove_underscore_from_dict_keys(list(result))
         return result
     
-    def get_dbs(self) -> [Any]:
-        admin_client = self.client.get_admin(token=self.astra_db_token)
-        return admin_client.list_databases()
     
     def find_documents(
         self,
@@ -160,6 +161,25 @@ class AstraDBManager:
             self.logger.error(f"Failed to find documents in collection '{collection_name}': {str(e)}")
             return json.dumps({"error": f"Failed to find documents: {str(e)}"})
     
+    def list_collections(self = None) -> str:
+        """
+        List all collections in the Astra DB database.
+        """
+        self.logger.debug("Listing all collections in Astra DB")
+        
+        try:
+            db = self.get_db_by_name(self.astra_db_db_name)
+            collections = db.list_collection_names()
+            self.logger.info(f"Found {len(collections)} collections: {collections}")
+            return json.dumps({
+                "success": True,
+                "collections": collections
+            })
+        except Exception as e:
+            self.logger.error(f"Failed to list collections: {str(e)}")
+            return json.dumps({"error": f"Failed to list collections: {str(e)}"})
+
+
     # def insert_document(
     #     self,
     #     tools_parameters: Optional[Dict[str, Any]] = None,
@@ -273,59 +293,4 @@ class AstraDBManager:
     #         self.logger.error(f"Failed to delete document from collection '{collection_name}': {str(e)}")
     #         return json.dumps({"error": f"Failed to delete document: {str(e)}"})
     
-    def list_collections(self = None) -> str:
-        """
-        List all collections in the Astra DB database.
-        """
-        self.logger.debug("Listing all collections in Astra DB")
-        
-        if not self.db:
-            self.logger.error("Astra DB not available. Check your credentials.")
-            return json.dumps({"error": "Astra DB not available. Check your credentials."})
-        try:
-            collections = self.db.list_collection_names()
-            self.logger.info(f"Found {len(collections)} collections: {collections}")
-            return json.dumps({
-                "success": True,
-                "collections": collections
-            })
-        except Exception as e:
-            self.logger.error(f"Failed to list collections: {str(e)}")
-            return json.dumps({"error": f"Failed to list collections: {str(e)}"})
     
-    def get_collection_info(
-        self,
-        tools_parameters: Optional[Dict[str, Any]] = None,
-        collection_name: Optional[str] = None
-    ) -> str:
-        """
-        Get information about a specific collection.
-        """
-        # Extract parameters from tools_parameters if provided
-        if tools_parameters:
-            collection_name = tools_parameters.get('collection_name', collection_name)
-        
-        self.logger.debug(f"Getting collection info for '{collection_name}'")
-        
-        if not self.db:
-            self.logger.error("Astra DB not available. Check your credentials.")
-            return json.dumps({"error": "Astra DB not available. Check your credentials."})
-        try:
-            target_collection = self.db.get_collection(collection_name)
-            if not target_collection:
-                self.logger.error(f"Collection '{collection_name}' not available.")
-                return json.dumps({"error": "Collection not available."})
-            info = target_collection.find_one()
-            has_documents = info is not None
-            self.logger.info(f"Collection '{collection_name}' info: has_documents={has_documents}")
-            return json.dumps({
-                "success": True,
-                "collection_name": target_collection.name,
-                "has_documents": has_documents
-            })
-        except Exception as e:
-            self.logger.error(f"Failed to get collection info for '{collection_name}': {str(e)}")
-            return json.dumps({"error": f"Failed to get collection info: {str(e)}"})
-
-# Create a global instance
-# db_manager = AstraDBManager(ctx) 
