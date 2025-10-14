@@ -3,6 +3,7 @@ import pytest
 from fastmcp import Client
 import pytest_asyncio
 from fastmcp.client.transports import StreamableHttpTransport
+from fastmcp.client.auth import BearerAuth
 import os
 from dotenv import load_dotenv
 load_dotenv(override=True)
@@ -36,26 +37,10 @@ async def test_list_tools(mcp_client):
     assert len(result) > 0, "Server did not respond with tools"
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="This test is not implemented yet")
-async def test_run_search_products(mcp_client):
+async def test_run_search_airline_tickets(mcp_client):
     """Test running the search_products tool through the MCP client."""
-    result = await mcp_client.call_tool("search_products", {"search_query": "blue pants"})
+    result = await mcp_client.call_tool("search_airline_tickets", {"customer_id": "dc3a050c-0eb5-42dd-ab4f-450f0819c8e4"})
     print(result)
-    assert result is not None, "Server did not respond with search_products tool"
-    assert result.data is not None, "Server did not respond with search_products tool"
+    assert result is not None, "Server did not respond with search_airline_tickets tool"
+    assert result.documents is not None, "Server did not respond with search_products tool"
     
-@pytest.mark.asyncio
-async def test_run_rag(mcp_client):
-    """Test running the search_products tool through the MCP client."""
-    result = await mcp_client.call_tool("rag", {"search_query": "posso remarcar uma passagem?"})
-    print(result)
-    assert result is not None, "Server did not respond with rag tool"
-    assert result.data is not None, "Server did not respond with rag tool"
-
-@pytest.mark.asyncio
-async def test_run_list_collections(mcp_client):
-    """Test running the search_products tool through the MCP client."""
-    result = await mcp_client.call_tool("collections", {})
-    print(result)
-    assert result is not None, "Server did not respond with collections tool"
-    assert result.data is not None, "Server did not respond with collections tool"

@@ -14,5 +14,5 @@ This directory contains test scripts for the Astra MCP Server.
 
 ```bash
 # From the project root directory
-python tests/test.py -v
+python -m pytest tests/test_table.py -v
 ```

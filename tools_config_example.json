@@ -8,6 +8,38 @@
         "method": "list_collections"
     },
     {
+        "tags": ["airline"],
+        "type": "tool",
+        "name": "search_airline_tickets",
+        "description": "Search for airline tickets",
+        "projection" : {"flight_number": 1, "departure_time": 1, "departure_airport": 1, "arrival_airport": 1, "category": 1, "sub_category": 1, "description": 1},
+        "parameters": [
+            {  
+                "param": "customer_id",
+                "description": "Customer ID (UUID)",
+                "required": 1
+            },
+            {  
+                "param": "arrival_airport",
+                "description": "Arrival airport CODE (e.g. MIA, LAX, etc.)"
+            },
+            {  
+                "param": "departure_airport",
+                "description": "Departure airport CODE (e.g. MIA, LAX, etc.)"
+            },
+            {  
+                "param": "departure_time",
+                "description": "Departure time (ISO 8601 format)",
+                "type": "string",
+                "format": "date-time", 
+                "operator": "$gte"
+            }
+        ],
+        "method": "find",
+        "table_name": "airline_tickets_by_customer",
+        "limit": 10
+    },
+    {
         "tags": ["products"],
         "type": "tool",
         "name": "search_products",
@@ -44,7 +76,7 @@
                 "operator": "$eq"
             }
         ],
-        "method": "find_documents",
+        "method": "find",
         "collection_name": "products",
         "limit": 10
     },

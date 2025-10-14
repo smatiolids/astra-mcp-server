@@ -36,31 +36,16 @@ class RunToolMiddleware(Middleware):
         else:
             self.logger.debug(f"Tool config: {tool_config}")
 
-        filter_dict = {}
+        # Check arguments            
         for param in tool_config["parameters"]:
+            if param["param"] not in arguments and param.get("required", False) == True:
+                self.logger.error(f"Parameter {param['param']} is required")
+                return ToolResult({"error": f"Parameter {param['param']} is required"})
 
-            if param["attribute"] == "$vector" or param["attribute"] == "$vectorize":
-                continue
-
-            operator = "$eq"
-            if "operator" in param:
-                operator = param["operator"]
-
-            if "value" in param:
-                filter_dict[param["attribute"]] = {operator: param["value"]}
-            elif param["param"] not in arguments and param.get("required", False) == True:
-                ToolError(f"Parameter {param['param']} is required")
-            elif param["param"] in arguments:
-                filter_dict[param["attribute"]] = {
-                    operator: arguments[param["param"]]}
-
-        if tool_config["method"] == "find_documents":
-            result = self.astra_db_manager.find_documents(
-                search_query=arguments.get("search_query", None),
-                filter_dict=filter_dict,
-                limit=tool_config.get("limit", 10),
-                projection=tool_config.get("projection", {}),
-                collection_name=tool_config["collection_name"],
+        # Run methods
+        if tool_config["method"] == "find" or tool_config["method"] == "find_documents":
+            result = self.astra_db_manager.find(
+                arguments=arguments,
                 tool_config=tool_config)
 
             self.logger.debug(f"Result: {result}")
@@ -70,5 +55,6 @@ class RunToolMiddleware(Middleware):
             result = self.astra_db_manager.list_collections()
             self.logger.debug(f"Result: {result}")
             return ToolResult(result)
-        else:
-            ToolError(f"Method {tool_config['method']} not allowed")
+        
+        # Method not implemented
+        ToolError(f"Method {tool_config['method']} not allowed")

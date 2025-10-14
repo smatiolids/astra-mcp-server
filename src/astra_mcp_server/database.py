@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 from astrapy import DataAPIClient
+from astrapy.data_types import DataAPIVector
 from .logger import get_logger
 from .utils import remove_underscore_from_dict_keys, extract_db_id_from_astra_url
 from .embedding import generate_embedding
@@ -99,40 +100,73 @@ class AstraDBManager:
         return result
     
     
-    def find_documents(
+    def find(
         self,
-        search_query: Optional[str] = None,
-        filter_dict: Optional[Dict[str, Any]] = None,
-        limit: int = 10,
-        sort: Optional[Dict[str, int]] = None,
-        projection: Optional[Dict[str, int]] = None,
-        collection_name: Optional[str] = None,
+        arguments: Optional[Dict[str, Any]] = None,
         tool_config: Optional[Dict[str, Any]] = None,
-    ) -> str:
+    ) -> Dict[str, Any]:
         """
         Find documents in Astra DB collection.
-        """        
-        self.logger.info(f"Finding documents in collection '{collection_name}' with filter: {filter_dict}, limit: {limit}, search_query: {search_query}")
-        
+        """
         try:
-            db = self.get_db_by_name(tool_config["db_name"] if "db_name" in tool_config else self.astra_db_db_name)
-            target_collection = db.get_collection(collection_name)
-            if not target_collection:
-                self.logger.error(f"Collection '{collection_name}' not available.")
-                return json.dumps({"error": "Collection not available."})
+            if not tool_config:
+                self.logger.error("Tool config not found")
+                return json.dumps({"error": "Tool config not found"})
             
+            # Where to run the query
+            object_type = "collection" if "collection_name" in tool_config else "table"
+            object_name = tool_config["collection_name"] if "collection_name" in tool_config else tool_config["table_name"]
+            db_name = tool_config["db_name"] if "db_name" in tool_config else self.astra_db_db_name
+            
+            self.logger.debug(f"Finding documents in '{object_type}' '{object_name}' in database '{db_name}'")
+            
+            db = self.get_db_by_name(db_name)
+            target_object = None
+
+            if object_type == "collection":
+                target_object = db.get_collection(object_name)
+            else:
+                target_object = db.get_table(object_name)
+                
+            if not target_object:
+                self.logger.error(f"{object_type} '{object_name}' not available.")
+                return json.dumps({"error": f"{object_type} '{object_name}' not available."})
+            
+            filter_dict = {}
+            search_query = None
+            for param in tool_config["parameters"]:
+                
+                attribute = param["attribute"] if "attribute" in param else param["param"]
+
+                if attribute == "$vector" or attribute == "$vectorize":
+                    search_query = arguments[param["param"]]
+                    continue
+
+                operator = "$eq"
+                if "operator" in param:
+                    operator = param["operator"]
+
+                if "value" in param:
+                    filter_dict[attribute] = {operator: param["value"]}
+                elif param["param"] in arguments:
+                    filter_dict[attribute] = {
+                        operator: arguments[param["param"]]}
+                    
+            # Find parameters
             find_params = {}
+            
             if filter_dict:
                 find_params["filter"] = filter_dict
-            if limit:
-                find_params["limit"] = limit
+                
+            if tool_config["limit"]:
+                find_params["limit"] = tool_config["limit"]
             
             if search_query:
                 search_query_config = next((p for p in tool_config["parameters"] if p["param"] == "search_query"), None)
                 if "embedding_model" in search_query_config:
                     try:    
                         embedding = generate_embedding(search_query, search_query_config["embedding_model"])
-                        find_params["sort"] = {"$vector": embedding}
+                        find_params["sort"] = {"$vector": DataAPIVector(embedding)}
                     except Exception as e:
                         self.logger.error(f"Failed to generate embedding: {str(e)}")
                         return json.dumps({"error": f"Failed to generate embedding: {str(e)}"})
@@ -141,26 +175,27 @@ class AstraDBManager:
                 else:
                     self.logger.error("Search query attribute must be $vectorize or $vector")
                     return json.dumps({"error": "Search query attribute must be $vectorize or $vector"})
-            elif sort:
-                find_params["sort"] = sort
             
-            if projection:
-                find_params["projection"] = projection
+            elif "sort" in tool_config:
+                find_params["sort"] = tool_config["sort"]
+            
+            if "projection" in tool_config:
+                find_params["projection"] = tool_config["projection"]
             
             self.logger.debug("find_params %s", find_params)
 
-            result = target_collection.find(**find_params)
+            result = target_object.find(**find_params)
             documents = list(result)
-            self.logger.info(f"Found {len(documents)} documents in collection '{collection_name}'")
-            return json.dumps({
+            self.logger.info(f"Found {len(documents)} documents in {object_type} '{object_name}'")
+            return {
                 "success": True,
                 "count": len(documents),
                 "documents": documents
-            }, default=str)
+            }
         except Exception as e:
-            self.logger.error(f"Failed to find documents in collection '{collection_name}': {str(e)}")
+            self.logger.error(f"Failed to find documents in {object_type} '{object_name}': {str(e)}")
             return json.dumps({"error": f"Failed to find documents: {str(e)}"})
-    
+
     def list_collections(self = None) -> str:
         """
         List all collections in the Astra DB database.
