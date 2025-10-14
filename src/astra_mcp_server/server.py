@@ -12,10 +12,11 @@ import uvicorn
 import asyncio
 from fastmcp.server.auth.providers.jwt import StaticTokenVerifier, TokenVerifier
 from fastmcp.server.dependencies import get_http_headers
+from .utils import load_env_variables
 
 load_dotenv(override=True)
 
-# Define development tokens and their associated claims
+
 
 # Initialize logger
 logger = get_logger("astra_mcp_server", level=os.getenv("LOG_LEVEL"))
@@ -54,8 +55,14 @@ async def main():
     parser.add_argument("--tags", "-tags")  # For filtering tools
     parser.add_argument("--auth", "-auth", default=True,
                         action="store_true", help="Disable authentication")
+    
+    parser.add_argument("--env", "-env", action="append", 
+                        help="Environment variables in KEY=VALUE format (can be used multiple times)")
 
     args = parser.parse_args()
+    
+    # Load environment variables from command line arguments
+    load_env_variables(args.env, logger)
     
     # headers = get_http_headers()
     # logger.info(f"Headers: {headers}")
@@ -92,6 +99,9 @@ async def main():
             collection_name=args.catalog_collection, tags=args.tags)
 
     logger.info(f"Tools config content: {tools_config_content}")
+    if not tools_config_content or len(tools_config_content) == 0:
+        logger.error("No tools found. Load tools to Astra DB collection or reference the catalog file")
+        return
 
     # Add middleware to process tool calling
     mcp.add_middleware(RunToolMiddleware(

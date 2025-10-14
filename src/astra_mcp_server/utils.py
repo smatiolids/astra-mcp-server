@@ -1,6 +1,26 @@
 import re
 from typing import Any
+import os
+# Define development tokens and their associated claims
 
+def load_env_variables(env_args, logger):
+    """
+    Load environment variables from command line arguments.
+    
+    Args:
+        env_args: List of strings in KEY=VALUE format
+    """
+    if not env_args:
+        return
+    
+    for env_var in env_args:
+        if "=" not in env_var:
+            logger.warning(f"Invalid environment variable format: {env_var}. Expected KEY=VALUE")
+            continue
+        
+        key, value = env_var.split("=", 1)  # Split only on first '=' to handle values with '='
+        os.environ[key] = value
+        logger.info(f"Loaded environment variable: {key}")
 
 def extract_db_id_from_astra_url(url: str) -> str:
     """
