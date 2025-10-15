@@ -25,7 +25,7 @@ def read_license():
 
 setup(
     name="astra-mcp-server",
-    version="0.0.2",
+    version="0.0.3",
     description="Astra MCP Server",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
