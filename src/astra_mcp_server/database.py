@@ -14,7 +14,7 @@ from astrapy import DataAPIClient
 from astrapy.data_types import DataAPIVector
 from .logger import get_logger
 from .utils import remove_underscore_from_dict_keys, extract_db_id_from_astra_url
-from .embedding import generate_embedding
+from .llm import generate_embedding
 
 # Load environment variables
 load_dotenv()
@@ -30,7 +30,7 @@ class AstraDBManager:
     """Manager class for Astra DB operations."""
     logger = get_logger("Astra DB Manager")
     
-    def __init__(self, token: str, endpoint: str, db_name: str):
+    def __init__(self, token: str, endpoint: str = None, db_name: str = None):
         self.astra_db_token = token
         self.astra_db_api_endpoint = endpoint
         self.astra_db_db_name = db_name
@@ -58,8 +58,6 @@ class AstraDBManager:
                     # If no db name or api endpoint, use the first db
                     self.astra_db_db_name = db_list[0].name
                 
-            self.logger.debug("available collections: %s", self.get_db_by_name(self.astra_db_db_name).list_collection_names())
-            
             self.logger.info("Connected to Astra DB successfully")
         except Exception as e:
             self.logger.error(f"Could not connect to Astra DB: {e}")

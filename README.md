@@ -87,7 +87,7 @@ LOG_FILE=./logs/logs.log
 LOG_LEVEL=INFO
 LOG_FILE=logs/astra_mcp_server.log
 
-#Embedding Configuration
+#Embedding and Agentic Tool Generation Configuration
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_BASE_URL=your_openai_base_url
 IBM_WATSONX_API_KEY=your_ibm_watsonx_api_key
@@ -154,6 +154,50 @@ uv run astra-mcp-catalog --help
 
 ```
 
+## Generating Tool Specifications
+
+The astra-mcp-server includes a tool specification generator that can automatically create tool configurations by analyzing your Astra DB tables. This is particularly useful when you have existing data and want to quickly generate MCP tools for it.
+
+### Prerequisites
+
+- Set the `ASTRA_DB_APPLICATION_TOKEN` environment variable
+- Access to the Astra DB database and table you want to analyze
+
+### Usage
+
+```bash
+# Generate tool specification for a table
+uv run astra-mcp-tool-agent --table-name <table_name> --db-name <keyspace_name> --out-file <json file name> -ai "tool should be used only for future flights, so add a parameter for departure date > today"
+```
+
+### Command Options
+
+- `--table-name` / `-t`: Name of the table to analyze (required)
+- `--db-name` / `-d`: Name of the database containing the table (required)  
+- `--out-file` / `-o`: Output file path for the generated JSON (required)
+- `--sample-size` / `-s`: Number of sample records to analyze (default: 5)
+- `--additional-instructions` / `-ai`: Additional instructions for the tool specification generation
+
+### What it does
+
+1. **Connects to Astra DB** using your existing credentials
+2. **Retrieves table schema** and analyzes the structure
+3. **Samples data** (first 5 records by default) to understand field types
+4. **Generates parameters** automatically based on actual table fields
+5. **Creates tool specification** in the exact format required by the MCP server
+6. **Outputs JSON** ready to use with your MCP server
+
+```
+
+### Integration with Existing Workflow
+
+After generating a tool specification, you can:
+
+1. **Review and customize** the generated JSON as needed
+2. **Upload to Astra DB** using the catalog tool:
+   ```bash
+   uv run astra-mcp-catalog -f user_tool.json -t tool_catalog
+   ```
 # Local Development
 
 ```bash

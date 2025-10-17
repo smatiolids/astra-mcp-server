@@ -14,7 +14,7 @@ class AstraCatalog:
     def __init__(self):
         self.astra_db_name = os.getenv("ASTRA_DB_DB_NAME")
         self.astra_db_manager = AstraDBManager(os.getenv("ASTRA_DB_APPLICATION_TOKEN"), os.getenv("ASTRA_DB_API_ENDPOINT"), self.astra_db_name)
-        self.db = self.astra_db_manager.db[self.astra_db_name]
+        self.db = self.astra_db_manager.get_db_by_name(self.astra_db_name)
     
     def upload_catalog(self, catalog: dict, table_name: str):
         collection_name = table_name
@@ -30,7 +30,16 @@ class AstraCatalog:
         collection = self.db.get_collection(collection_name)
             
         self.logger.info(f"Deleting all catalog items from {collection_name}")
-        collection.delete_many({})
+        
+        if not isinstance(catalog, list):
+            catalog = [catalog]
+            
+        tools_to_update = []
+        for tool in catalog:
+            if tool["type"] == "tool":
+                tools_to_update.append(tool["name"])
+        self.logger.info(f"Tools to update: {tools_to_update}")        
+        collection.delete_many({"name": {"$in": tools_to_update}})
         self.logger.info(f"Uploading {len(catalog)} catalog items to {collection_name}")
         result = collection.insert_many(catalog)
         self.logger.info(f"Uploaded {len(result.inserted_ids)} catalog items")
