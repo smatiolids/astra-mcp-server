@@ -16,14 +16,13 @@ from .utils import load_env_variables
 
 load_dotenv(override=True)
 
-
-
 # Initialize logger
-logger = get_logger("astra_mcp_server", level=os.getenv("LOG_LEVEL"))
-
+logger = get_logger("astra_mcp_server", level=os.getenv("LOG_LEVEL"), log_file=os.getenv("LOG_FILE"))
 
 async def main():
-
+    
+    logger.info(f"Starting Astra MCP Server")
+    
     # Parse arguments
     parser = argparse.ArgumentParser(conflict_handler="resolve")
 
@@ -62,16 +61,15 @@ async def main():
     args = parser.parse_args()
     
     # Load environment variables from command line arguments
-    load_env_variables(args.env, logger)
-    
-    # headers = get_http_headers()
-    # logger.info(f"Headers: {headers}")
-    # verifier2 = AstraAuth(
-    #     token=args.astra_token
-    # )
+    load_env_variables(args.env, logger)    
+    logger.error(f"ASTRA_DB_APPLICATION_TOKEN: {os.getenv('ASTRA_DB_APPLICATION_TOKEN')}")
+    logger.error(f"ASTRA_DB_APPLICATION_TOKEN arg: {args.astra_token}")
+    logger.error(f"Used: {args.astra_token or os.getenv("ASTRA_DB_APPLICATION_TOKEN")}")
     
     astra_db_manager = AstraDBManager(
-        token=args.astra_token, endpoint=args.astra_endpoint, db_name=args.astra_db_name)
+        token=args.astra_token or os.getenv("ASTRA_DB_APPLICATION_TOKEN"), 
+        endpoint=args.astra_endpoint or os.getenv("ASTRA_DB_API_ENDPOINT"), 
+        db_name=args.astra_db_name or os.getenv("ASTRA_DB_DB_NAME"))
 
     # Initialize MCP
     # Configure JWT verifier

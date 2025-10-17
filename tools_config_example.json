@@ -95,6 +95,24 @@
                 "description": "Query to search for products",
                 "attribute": "$vectorize",
                 "type": "string"
+            }
+        ]
+    },
+    {
+        "tags": ["latam", "faq"],
+        "type": "tool",
+        "name": "rag_latam_airlines_with_topic",
+        "method": "find_documents",
+        "collection_name": "latam_faq",
+        "description": "Search the LATAM FAQ for a question and return relevant context",
+        "limit": 10,
+        "projection" : {"$vectorize": 1, "metadata": 0},
+        "parameters": [
+            {  
+                "param": "search_query",
+                "description": "Query to search for products",
+                "attribute": "$vectorize",
+                "type": "string"
             },
             {
                 "param": "topic",

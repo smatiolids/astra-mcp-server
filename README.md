@@ -109,6 +109,7 @@ The tools are created based on a json specification that needs the following fie
         "limit": 10, // The limit of the tool
         "method": "find_documents", // The method to use to execute the tool
         "collection_name": "products", // The collection to use to execute the tool
+        "table_name": "products", // The table to use to execute the tool (if the collection_name is not filled)
         "projection": {"$vectorize": 1, "metadata": 0}, // The projection of the tool
         "parameters": [ // The parameters of the tool
             {  

@@ -3,6 +3,7 @@ from typing import Any
 import os
 # Define development tokens and their associated claims
 
+ALLOWED_ENV_VARIABLES = ["ASTRA_DB_APPLICATION_TOKEN", "ASTRA_DB_API_ENDPOINT", "ASTRA_DB_DB_NAME", "OPENAI_API_KEY", "LOG_LEVEL", "LOG_FILE", "ASTRA_DB_CATALOG_COLLECTION"]
 def load_env_variables(env_args, logger):
     """
     Load environment variables from command line arguments.
@@ -19,6 +20,9 @@ def load_env_variables(env_args, logger):
             continue
         
         key, value = env_var.split("=", 1)  # Split only on first '=' to handle values with '='
+        if key not in ALLOWED_ENV_VARIABLES:
+            logger.warning(f"Invalid environment variable: {key}. Allowed variables are: {ALLOWED_ENV_VARIABLES}")
+            continue
         os.environ[key] = value
         logger.info(f"Loaded environment variable: {key}")
 
