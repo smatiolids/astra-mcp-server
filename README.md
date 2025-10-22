@@ -177,11 +177,15 @@ uv run astra-mcp-tool-agent --table-name <table_name> --keyspace-name <keyspace_
 
 ### Command Options
 
+- `--export-prompt` / `-ep`: Export the prompt used to generate the tool specification
 - `--table-name` / `-t`: Name of the table to analyze (required)
+- `--collection-name` / `-c`: Name of the collection to analyze (required)
+- `--keyspace-name` / `-k`: Name of the keyspace to analyze (default: `default_keyspace`)
 - `--db-name` / `-d`: Name of the database containing the table (required)  
-- `--out-file` / `-o`: Output file path for the generated JSON (required)
+- `--out-file` / `-o`: Output file path for the generated JSON (required) - If not filled, the tool specification will be printed to the console
 - `--sample-size` / `-s`: Number of sample records to analyze (default: 5)
 - `--additional-instructions` / `-ai`: Additional instructions for the tool specification generation
+- `--prompt-file` / `-pf`: Prompt file to use for the tool specification generation
 
 ### What it does
 
