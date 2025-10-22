@@ -20,12 +20,18 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from astra_mcp_server.database import AstraDBManager
 from astra_mcp_server.logger import get_logger
 from astra_mcp_server.llm import run_prompt
+from astra_mcp_server.tool_agent_prompt import prompt as tool_agent_prompt
 
 # Load environment variables
 load_dotenv()
 
-logger = get_logger("Tool Spec Generator")
+logger = get_logger("Tool Spec Generator", stdout=True)
 
+def export_prompt(file_path: str) -> str:
+    prompt = tool_agent_prompt
+    with open(file_path, "w") as f:
+        f.write(prompt)
+    logger.info(f"Prompt exported to {file_path}")
 class AstraToolAgent:
     
     db_manager = None
@@ -44,6 +50,8 @@ class AstraToolAgent:
         if table_name:
             self.table_name = table_name
             self.table = self.db.get_table(self.table_name)
+            
+
             
     def get_indexed_columns(self, table_indexes: List[Dict[str, Any]], index_type: TableIndexType = TableIndexType.REGULAR) -> List[str]:
         indexed_columns = []
@@ -70,7 +78,7 @@ class AstraToolAgent:
             "vector_columns": self.get_indexed_columns(table_indexes, TableIndexType.VECTOR),
             "text_columns": self.get_indexed_columns(table_indexes, TableIndexType.TEXT)
         }
-        print(metadata)
+        logger.info(f"Table metadata: {metadata}")
         
         logger.info(f"Retrieved schema for table '{self.table_name}': {metadata}")
         return metadata
@@ -88,62 +96,43 @@ class AstraToolAgent:
             logger.error(f"Failed to get sample records from table '{self.table.name}': {str(e)}")
             return None
 
-    def generate_tool_specification(self, sample_size: int = 5, additional_instructions: str = "") -> Dict[str, Any]:
+    def load_prompt_template(self, prompt_file: str = None) -> str:
+        """Load the prompt template from the markdown file."""
+        if prompt_file:
+            prompt_file_path = prompt_file
+        else:
+            prompt_file_path = os.path.join(os.path.dirname(__file__), "tool_specification_prompt.md")
+        try:
+            with open(prompt_file_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            logger.error(f"Prompt template file not found: {prompt_file_path}")
+            raise
+        except Exception as e:
+            logger.error(f"Error reading prompt template file: {e}")
+            raise
+
+    def generate_tool_specification(self, sample_size: int = 5, additional_instructions: str = "", prompt_file: str = None) -> Dict[str, Any]:
         """Generate tool specification based on table schema and sample data."""
         self.metadata = self.get_table_schema()
         sample_records = self.get_sample_records(limit=sample_size)
         
+        # Load prompt template from markdown file and format with variables
+        prompt_template = ""
+        if prompt_file:
+            prompt_template = self.load_prompt_template(prompt_file)
+        else:
+            prompt_template = tool_agent_prompt
         
-        prompt = f'''
-        You are a tool specification generator. You are given a table schema and sample data.
-        You need to generate a tool specification for the table.
-        The tool specification should be in the format of a JSON object.
-        While generate descriptions, define it in a way to make it easier for LLM to understand it.
-        Use the sample data to identify data types, patterns and enums.
-
-        
-        IMPORTANT: Consider ONLY the partition keys, sorting keys and indexed columns as parameteres.
-        IMPORTANT: Partition keys are mandatory parameters.
-        IMPORTANT: For indexed date time or timestamps parameters, generate start_<column_name> and end_<column_name> parameters. use $gt and $lte operators.
-        IMPORTANT: For indexed numeric parameters, generate min_<column_name> and max_<column_name> parameters. use $gte and $lte operators.
-        IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text.
-        IMPORTANT: If the column is a vector column, generate the embedding_model as text-embedding-3-small.
-        
-        The table schema is: {self.metadata}
-        
-        The sample data is: {sample_records}
-
-        Additional instructions: {additional_instructions}
-
-        
-        Generate the tool specification in the following format:
-        {{
-            "tags": [<main topics of the data>],
-            "type": "tool",
-            "name": <name of the tool - String>,
-            "description": <description of the tool - String>,
-            "projection": < relevant fields to return. avoid codes, and technical fields like _id, _createdAt, _updatedAt, _deletedAt, etc. E.g: {{"column_name": 1, "column_name2": 1, "column_name3": 1}} | type: Object | default: {{}}>,
-            "parameters": [
-                {{
-                    "param": <name of the parameter - String | type: String >
-                    "description": <instruction to the LLM about how to use the parameter - String>,
-                    "attribute": <name of the column in the table | type: String | default: $vectorize | If it is equal to the param, do not fill this field>
-                    "type": <type of the parameter according to the attribute>,
-                    "required": <required parameter. If the attribute is partition key, it is mandatory | type: Boolean | default: False>,
-                    "operator": < The operator to use to filter the parameter - if not filled, the operator is $eq | type: String | default: $eq | If the attribute is not a vector column, do not fill this field>,
-                    "enum": <enum of the parameter - Array of Strings | If no enum detected, do not fill this field>,
-                    "embedding_model": <embedding model of the parameter - String | If no embedding model detected, do not fill this field>,
-                    "expr": <if theres a expression for the parameters, like filter conditions, add it here. Use python basic operations or datetime operations | type: String | default: None | If unknown, do not fill this field>,
-                    "value": <if theres a static value for the parameters, like filter conditions, add it here | type: Any | default: None | If unknown, do not fill this field>,
-                    "info": <inform if the attribute is part of partitionk key, sorting key, indexed column or vector column | type: String | default: "">
-                }},
-            ],
-            "method": "find",
-            "table_name": <table name of the tool>,
-            "db_name": <db name of the tool>,
-            "limit": <limit of the tool | Default: 10>
-        }}
-        '''
+        if prompt_template == "":
+            logger.error("No prompt template found")
+            raise ValueError("No prompt template found")
+            
+        prompt = prompt_template.format(
+            metadata=self.metadata,
+            sample_records=sample_records,
+            additional_instructions=additional_instructions
+        )
         response = run_prompt(prompt)
         content = response["choices"][0]["message"]["content"]
         
@@ -177,6 +166,12 @@ python generate_tool_spec.py --table-name users --db-name mydb --out-file user_t
 python generate_tool_spec.py -t products -d ecommerce -o product_tool.json
         """
     )
+
+    parser.add_argument(
+        "--export-prompt", "-ep",
+        required=False,
+        help="Export the prompt used to generate the tool specification"
+    )
     
     parser.add_argument(
         "--table-name", "-t",
@@ -199,13 +194,13 @@ python generate_tool_spec.py -t products -d ecommerce -o product_tool.json
     
     parser.add_argument(
         "--db-name", "-d", 
-        required=True,
+        required=False,
         help="Name of the database containing the table"
     )
     
     parser.add_argument(
         "--out-file", "-o",
-        required=True,
+        required=False,
         help="Output file path for the generated tool specification JSON"
     )
     
@@ -217,6 +212,12 @@ python generate_tool_spec.py -t products -d ecommerce -o product_tool.json
     )
     
     parser.add_argument(
+        "--prompt-file", "-pf",
+        required=False,
+        help="Prompt file to use for the tool specification generation"
+    )
+    
+    parser.add_argument(
         "--additional-instructions", "-ai",
         required=False,
         help="Additional instructions for the tool specification generation"
@@ -224,20 +225,26 @@ python generate_tool_spec.py -t products -d ecommerce -o product_tool.json
     
     args = parser.parse_args()
     
+    if args.export_prompt:
+        export_prompt(args.export_prompt)
+        sys.exit(0)
+        
     if (args.table_name and args.collection_name):
         logger.error("Either --table-name or --collection-name must be provided")
         sys.exit(1)
     
+    if (not args.out_file):
+        logger.error("--out-file is required")
+        sys.exit(1)
+ 
     token = os.getenv("ASTRA_DB_APPLICATION_TOKEN")
     db_name = os.getenv("ASTRA_DB_DB_NAME")
     tool_agent = AstraToolAgent(token, db_name, args.table_name, args.keyspace_name)
-    tool_spec = tool_agent.generate_tool_specification(args.sample_size, args.additional_instructions)
+    tool_spec = tool_agent.generate_tool_specification(args.sample_size, args.additional_instructions, args.prompt_file)
     if args.out_file:
         tool_agent.save_tool_to_file(tool_spec, args.out_file)
         logger.info(f"Tool specification written to '{args.out_file}'")
     else:
-        print("Tool specification:")
-        print(json.dumps(tool_spec, indent=2))
         logger.info("Tool specification:")
         logger.info(json.dumps(tool_spec, indent=2))
         sys.exit(1)

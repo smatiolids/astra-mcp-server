@@ -95,9 +95,11 @@ IBM_WATSONX_BASE_URL=your_ibm_watsonx_base_url
 IBM_WATSONX_PROJECT_ID=your_ibm_watsonx_project_id
 ```
 
-# The Tools Catalog
+# The Tool Catalog
 
-The catalog is the collection of tools that the MCP Server will provide to the MCP Clients/Agents. It can be save to a file or to a Astra DB collection (preferable for production use cases).
+The tool catalog is the collection of tools that the MCP Server will provide to the MCP Clients/Agents. It can be save to a file or to a Astra DB collection (preferable for production use cases).
+
+Check the examples in the `examples/tools` directory for more details.
 
 The tools are created based on a json specification that needs the following fields:
 ```json
@@ -119,8 +121,10 @@ The tools are created based on a json specification that needs the following fie
                 "type": "string", // The type of the parameter
                 "required": 1, // Whether the parameter is required
                 "operator": "$eq", // The operator to use to filter the parameter - if not filled, the operator is $eq
+                "expr": "date(departure_time) > date('today')", // The expression to use to filter the parameter - if not filled, the expression is not applied
                 "enum": ["baggage", "boarding", "check-in", "flight-status", "other"], // The enum of the parameter
-                "embedding_model": "text-embedding-3-small" // The embedding model to use to generate the embedding
+                "embedding_model": "text-embedding-3-small", // The embedding model to use to generate the embedding
+                "info": "indexed column" // The information about the parameter - indexed column, partition key, sorting key, vector column, etc.
             },
             {  
                 "param": "in_stock", // The name of the parameter 
@@ -168,7 +172,7 @@ The astra-mcp-server includes a tool specification generator that can automatica
 
 ```bash
 # Generate tool specification for a table
-uv run astra-mcp-tool-agent --table-name <table_name> --db-name <keyspace_name> --out-file <json file name> -ai "tool should be used only for future flights, so add a parameter for departure date > today"
+uv run astra-mcp-tool-agent --table-name <table_name> --keyspace-name <keyspace_name> --db-name <db_name> --out-file <json file name> -ai "tool should be used only for future flights, so add a parameter for departure date > today" -pf <prompt file path>
 ```
 
 ### Command Options

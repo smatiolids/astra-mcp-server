@@ -18,13 +18,14 @@ class LoggerConfig:
         name: str = "astra_mcp_server",
         level: str = "INFO",
         log_file: Optional[str] = "logs/logs.log",
-        format_string: Optional[str] = None
+        format_string: Optional[str] = None,
+        stdout: bool = False
     ):
         self.name = name
         self.level = getattr(logging, level.upper(), logging.INFO)
         self.log_file = log_file
         self.format_string = format_string or "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        
+        self.stdout = stdout
     def setup_logger(self) -> logging.Logger:
         """Set up and configure the logger."""
         logger = logging.getLogger(self.name)
@@ -53,13 +54,20 @@ class LoggerConfig:
             file_handler.setLevel(self.level)
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
+
+        if self.stdout:
+            console_handler = logging.StreamHandler(sys.stdout)
+            console_handler.setLevel(self.level)
+            console_handler.setFormatter(formatter)
+            logger.addHandler(console_handler)
         
         return logger
 
 def get_logger(
     name: str = "astra_mcp_server",
     level: str = None,
-    log_file: Optional[str] = None
+    log_file: Optional[str] = None,
+    stdout: bool = False
 ) -> logging.Logger:
     """
     Get a configured logger instance.
@@ -80,7 +88,7 @@ def get_logger(
     if log_file is None:
         log_file = os.getenv("LOG_FILE")
     
-    config = LoggerConfig(name=name, level=level, log_file=log_file)
+    config = LoggerConfig(name=name, level=level, log_file=log_file, stdout=stdout)
     return config.setup_logger()
 
 # Create default logger instance

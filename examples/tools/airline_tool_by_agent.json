@@ -1,0 +1,69 @@
+{
+  "tags": [
+    "airline tickets",
+    "customer data",
+    "travel"
+  ],
+  "type": "tool",
+  "name": "Airline Tickets by Customer",
+  "description": "A tool to retrieve airline ticket information associated with customers, including travel details and pricing.",
+  "projection": {
+    "customer_id": 1,
+    "ticket_id": 1,
+    "aircraft_model": 1,
+    "airline": 1,
+    "arrival_airport": 1,
+    "arrival_time": 1,
+    "baggage_allowance": 1,
+    "booking_date": 1,
+    "currency": 1,
+    "departure_airport": 1,
+    "departure_time": 1,
+    "flight_number": 1,
+    "price_paid": 1,
+    "seat_class": 1
+  },
+  "parameters": [
+    {
+      "param": "customer_id",
+      "description": "The unique identifier of the customer whose tickets are being queried.",
+      "type": "uuid",
+      "required": true,
+      "info": "partition key"
+    },
+    {
+      "param": "arrival_airport",
+      "description": "Filter results by the airport where flights arrive.",
+      "attribute": "arrival_airport",
+      "type": "text",
+      "info": "indexed column"
+    },
+    {
+      "param": "departure_airport",
+      "description": "Filter results by the airport from which flights depart.",
+      "attribute": "departure_airport",
+      "type": "text",
+      "info": "indexed column"
+    },
+    {
+      "param": "start_departure_time",
+      "description": "Filter results to include tickets with departure times after a specific date.",
+      "attribute": "departure_time",
+      "type": "timestamp",
+      "operator": "$gt",
+      "info": "indexed column"
+    },
+    {
+      "param": "end_departure_time",
+      "description": "Filter results to include tickets with departure times before or on a specific date.",
+      "attribute": "departure_time",
+      "type": "timestamp",
+      "operator": "$lte",
+      "info": "indexed column"
+    }
+  ],
+  "method": "find",
+  "table_name": "airline_tickets_by_customer",
+  "db_name": "default_keyspace",
+  "limit": 10
+}
