@@ -49,7 +49,7 @@ version = "0.0.2"  # Update this version
 ```python
 setup(
     name="astra-mcp-server",
-    version="0.0.2",  # Update this version
+    version="0.0.3",  # Update this version
     # ... rest of configuration
 )
 ```
@@ -126,8 +126,8 @@ git add pyproject.toml setup.py
 git commit -m "Bump version to 0.0.2"
 
 # 3. Create and push tag
-git tag -a v0.0.2 -m "Release version 0.0.2"
-git push origin v0.0.2
+git tag -a v0.0.3 -m "Release version 0.0.3"
+git push origin v0.0.3
 
 # 4. Build packages
 rm -rf dist/

@@ -87,6 +87,7 @@ class AstraDBManager:
     def get_catalog_content(self, collection_name: str, tags: Optional[str] = None) -> str:
         """Get catalog content from Astra DB collection."""
         db = self.get_db_by_name(self.astra_db_db_name)
+        self.logger.info(f"Database: {db}")
         collection =  db.get_collection(collection_name)
         self.logger.info(f"Getting catalog content from {collection_name} with tags: {tags}")
         result = None
@@ -146,6 +147,8 @@ class AstraDBManager:
 
                 if "value" in param:
                     filter_dict[attribute] = {operator: param["value"]}
+                elif "expr" in param:
+                    filter_dict[attribute] = eval(param["expr"])
                 elif param["param"] in arguments:
                     filter_dict[attribute] = {
                         operator: arguments[param["param"]]}

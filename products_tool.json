@@ -1,0 +1,88 @@
+{
+  "tags": [
+    "products",
+    "ecommerce",
+    "clothing"
+  ],
+  "type": "tool",
+  "name": "Product Search",
+  "description": "A tool to search for clothing products based on various attributes like color, price, availability, and release date.",
+  "projection": {
+    "id": 1,
+    "brand": 1,
+    "category": 1,
+    "color": 1,
+    "description": 1,
+    "embedding": 1,
+    "images": 1,
+    "original_price": 1,
+    "price": 1,
+    "product_name": 1,
+    "rating": 1,
+    "release_date": 1,
+    "seller": 1,
+    "sub_category": 1,
+    "url": 1
+  },
+  "parameters": [
+    {
+      "param": "id",
+      "description": "Unique identifier for the product.",
+      "type": "text",
+      "required": true,
+      "info": "Partition key"
+    },
+    {
+      "param": "color",
+      "description": "Color of the product.",
+      "type": "text",
+      "info": "Indexed column"
+    },
+    {
+      "param": "release_date",
+      "description": "Release date of the product.",
+      "type": "timestamp",
+      "operator": "$gt",
+      "info": "Indexed column"
+    },
+    {
+      "param": "end_release_date",
+      "description": "End date for filtering products by release date.",
+      "type": "timestamp",
+      "operator": "$lte",
+      "info": "Indexed column"
+    },
+    {
+      "param": "price",
+      "description": "Price of the product.",
+      "type": "float",
+      "operator": "$gte",
+      "info": "Indexed column"
+    },
+    {
+      "param": "max_price",
+      "description": "Maximum price for filtering products.",
+      "type": "float",
+      "operator": "$lte",
+      "info": "Indexed column"
+    },
+    {
+      "param": "out_of_stock",
+      "description": "Filter out products that are out of stock.",
+      "type": "boolean",
+      "value": false,
+      "info": "Indexed column"
+    },
+    {
+      "param": "embedding",
+      "description": "Vector representation of the product.",
+      "type": "vector",
+      "embedding_model": "text-embedding-3-small",
+      "info": "Vector column"
+    }
+  ],
+  "method": "find",
+  "table_name": "products_cql",
+  "db_name": "default_keyspace",
+  "limit": 10
+}

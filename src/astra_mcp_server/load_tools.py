@@ -39,7 +39,7 @@ class ToolLoader:
             parameters["properties"] = {}
             
         for param in config["parameters"]:
-            if "value" in param: # If the parameter has a value, it is not sent to the MCP Client
+            if "value" in param or "expr" in param: # If the parameter has a value or expression, it is not sent to the MCP Client
                 continue
             
             parameters["properties"][param["param"]] = {

@@ -1,0 +1,51 @@
+{
+  "tags": [
+    "airline",
+    "travel",
+    "customer",
+    "tickets"
+  ],
+  "type": "tool",
+  "name": "Airline Tickets by Customer 2",
+  "description": "Retrieve information on airline tickets booked by customers, including details about flights and prices.",
+  "projection": {
+    "customer_id": 1,
+    "ticket_id": 1,
+    "aircraft_model": 1,
+    "airline": 1,
+    "arrival_airport": 1,
+    "arrival_time": 1,
+    "baggage_allowance": 1,
+    "booking_date": 1,
+    "currency": 1,
+    "departure_airport": 1,
+    "departure_time": 1,
+    "flight_number": 1,
+    "price_paid": 1,
+    "seat_class": 1
+  },
+  "parameters": [
+    {
+      "param": "customer_id",
+      "description": "Specify the unique identifier for the customer to filter the tickets.",
+      "type": "string",
+      "required": true,
+      "info": "partition key"
+    },
+    {
+      "param": "arrival_airport",
+      "description": "Filter tickets based on the arrival airport code.",
+      "type": "string",
+      "info": "indexed column"
+    },
+    {
+      "param": "departure_airport",
+      "description": "Filter tickets based on the departure airport code.",
+      "type": "string",
+      "info": "indexed column"
+    }
+  ],
+  "method": "find",
+  "table_name": "airline_tickets_by_customer",
+  "limit": 10
+}

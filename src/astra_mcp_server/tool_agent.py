@@ -126,13 +126,14 @@ class AstraToolAgent:
             "parameters": [
                 {{
                     "param": <name of the parameter - String | type: String >
-                    "description": <description of the parameter - String>,
+                    "description": <instruction to the LLM about how to use the parameter - String>,
                     "attribute": <name of the column in the table | type: String | default: $vectorize | If it is equal to the param, do not fill this field>
                     "type": <type of the parameter according to the attribute>,
                     "required": <required parameter. If the attribute is partition key, it is mandatory | type: Boolean | default: False>,
                     "operator": < The operator to use to filter the parameter - if not filled, the operator is $eq | type: String | default: $eq | If the attribute is not a vector column, do not fill this field>,
                     "enum": <enum of the parameter - Array of Strings | If no enum detected, do not fill this field>,
                     "embedding_model": <embedding model of the parameter - String | If no embedding model detected, do not fill this field>,
+                    "expr": <if theres a expression for the parameters, like filter conditions, add it here. Use python basic operations or datetime operations | type: String | default: None | If unknown, do not fill this field>,
                     "value": <if theres a static value for the parameters, like filter conditions, add it here | type: Any | default: None | If unknown, do not fill this field>,
                     "info": <inform if the attribute is part of partitionk key, sorting key, indexed column or vector column | type: String | default: "">
                 }},

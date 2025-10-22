@@ -154,13 +154,14 @@ uv run astra-mcp-catalog --help
 
 ```
 
-## Generating Tool Specifications
+## Agentic Tool Generation
 
 The astra-mcp-server includes a tool specification generator that can automatically create tool configurations by analyzing your Astra DB tables. This is particularly useful when you have existing data and want to quickly generate MCP tools for it.
 
 ### Prerequisites
 
 - Set the `ASTRA_DB_APPLICATION_TOKEN` environment variable
+- Set the `OPENAI_API_KEY` environment variable
 - Access to the Astra DB database and table you want to analyze
 
 ### Usage
