@@ -7,6 +7,12 @@ import json
 from .database import AstraDBManager
 import os
 from datetime import datetime # for datetime eval expressions that can be used in the tool config
+import uuid
+
+class AuditStatus:
+    STARTED = "started"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 class RunToolMiddleware(Middleware):
     
@@ -22,11 +28,36 @@ class RunToolMiddleware(Middleware):
             ToolError("No context found")
 
         tool_name = context.message.name
-
-        self.logger.info(f"Tool name: {tool_name}")
-
-        arguments = context.message.arguments
-        self.logger.debug(f"Arguments: {arguments}")
+        run_id = uuid.uuid1() # Use UUID1 for timestamp based UUID
+        start_timestamp = datetime.now().isoformat()
+        
+        self.logger.info(f"Run ID: {run_id}")
+        self.logger.info(f"Start timestamp: {start_timestamp}")
+        self.logger.info(f"Context: {context}")
+        self.astra_db_manager.log_audit(tool_id=tool_name, 
+                                       client_id=context.fastmcp_context.client_id, 
+                                       run_id=run_id, 
+                                       start_timestamp=start_timestamp,
+                                       status=AuditStatus.STARTED)
+        
+        try:
+            arguments = context.message.arguments
+            self.logger.debug(f"Arguments: {arguments}")
+            self.astra_db_manager.log_audit(tool_id=tool_name, 
+                                       run_id=run_id, 
+                                       parameters= json.dumps(arguments),
+                                       status=AuditStatus.STARTED)
+        except Exception as e:
+            self.logger.error(f"Error getting arguments: {e}")
+            self.astra_db_manager.log_audit(tool_id=tool_name, 
+                                       run_id=run_id, 
+                                       end_timestamp=datetime.now().isoformat(),
+                                       status=AuditStatus.FAILED,
+                                       status_code=500,
+                                       status_message=f"Error getting arguments: {e}",
+                                       status_details=str(e),
+                                       error=str(e))
+            return ToolResult({"error": f"Error getting arguments: {e}"})
 
         tool_config = next(
             (t for t in self.tools_config if t['name'] == tool_name), None)
@@ -49,12 +80,17 @@ class RunToolMiddleware(Middleware):
                 tool_config=tool_config)
 
             self.logger.debug(f"Result: {result}")
-            return ToolResult(result)
+            self.astra_db_manager.log_audit(tool_id=tool_name, 
+                                       run_id=run_id, 
+                                       end_timestamp=datetime.now().isoformat(),
+                                       status=AuditStatus.COMPLETED,
+                                       status_code=200)
+            return ToolResult(structured_content=result)
 
         if tool_config["method"] == "list_collections":
             result = self.astra_db_manager.list_collections()
             self.logger.debug(f"Result: {result}")
-            return ToolResult(result)
+            return ToolResult(structured_content=result)
         
         # Method not implemented
         ToolError(f"Method {tool_config['method']} not allowed")

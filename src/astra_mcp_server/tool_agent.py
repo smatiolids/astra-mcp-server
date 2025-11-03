@@ -23,9 +23,9 @@ from astra_mcp_server.llm import run_prompt
 from astra_mcp_server.tool_agent_prompt import prompt as tool_agent_prompt
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
-logger = get_logger("Tool Spec Generator", stdout=True)
+logger = get_logger("Agent Tool Generator", stdout=True)
 
 def export_prompt(file_path: str) -> str:
     prompt = tool_agent_prompt

@@ -68,7 +68,7 @@ When running the app as HTTP, you can use the following options:
 - `--workers <workers>`: The number of worker processes to use for the MCP Server. Default is `1`.
 - `--log-level <log_level>`: The log level to use for the MCP Server. Valid values are `debug`, `info`, `warning`, and `error`. Default is `info`.
 - `--log-file <log_file>`: The log file to use for the MCP Server. Default is `logs/astra_mcp_server.log`.
-    
+- `--audit <audit>`: Whether to enable audit trail. Default is `false`.
 
 ## 1. Set up environment variables
 
@@ -93,6 +93,12 @@ OPENAI_BASE_URL=your_openai_base_url
 IBM_WATSONX_API_KEY=your_ibm_watsonx_api_key
 IBM_WATSONX_BASE_URL=your_ibm_watsonx_base_url
 IBM_WATSONX_PROJECT_ID=your_ibm_watsonx_project_id
+
+#Audit Trail Configuration
+ASTRA_DB_AUDIT_TABLE_NAME=mcp_audit_trail
+
+#Authorization Configuration
+ASTRA_MCP_SERVER_TOKEN=your_astra_mcp_server_token
 ```
 
 # The Tool Catalog
@@ -172,7 +178,7 @@ The astra-mcp-server includes a tool specification generator that can automatica
 
 ```bash
 # Generate tool specification for a table
-uv run astra-mcp-tool-agent --table-name <table_name> --keyspace-name <keyspace_name> --db-name <db_name> --out-file <json file name> -ai "tool should be used only for future flights, so add a parameter for departure date > today" -pf <prompt file path>
+uv run astra-mcp-tool-agent --table-name <table_name> --keyspace-name <keyspace_name> --db-name <db_name> --out-file <json file name> -ai "tool should be used only for future flights, so add a parameter for departure date > today" -pf <prompt file path> -ep <export prompt file path>
 ```
 
 ## Command Options

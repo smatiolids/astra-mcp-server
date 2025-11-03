@@ -25,7 +25,7 @@ def read_license():
 
 setup(
     name="astra-mcp-server",
-    version="0.0.3",
+    version="0.0.4",
     description="Astra MCP Server",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
@@ -56,13 +56,18 @@ setup(
     packages=find_packages(where="src", exclude=["tests*", "__pycache__*"]),
     package_dir={"": "src"},
     py_modules=[
+        "astra_mcp_server.audit",
+        "astra_mcp_server.auth",
         "astra_mcp_server.catalog",
         "astra_mcp_server.database", 
+        "astra_mcp_server.llm",
         "astra_mcp_server.load_tools",
         "astra_mcp_server.logger",
         "astra_mcp_server.run_tool",
         "astra_mcp_server.server",
-        "astra_mcp_server.utils"
+        "astra_mcp_server.tool_agent",
+        "astra_mcp_server.tool_agent_prompt",
+        "astra_mcp_server.utils",
     ],
     install_requires=[
         "astrapy>=2.0.1",

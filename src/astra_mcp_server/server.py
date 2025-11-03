@@ -54,7 +54,8 @@ async def main():
     parser.add_argument("--tags", "-tags")  # For filtering tools
     parser.add_argument("--auth", "-auth", default=True,
                         action="store_true", help="Disable authentication")
-    
+    parser.add_argument("--audit", "-audit", default=False,
+                        action="store_true", help="Enable audit trail")
     parser.add_argument("--env", "-env", action="append", 
                         help="Environment variables in KEY=VALUE format (can be used multiple times)")
 
@@ -62,14 +63,14 @@ async def main():
     
     # Load environment variables from command line arguments
     load_env_variables(args.env, logger)    
-    logger.error(f"ASTRA_DB_APPLICATION_TOKEN: {os.getenv('ASTRA_DB_APPLICATION_TOKEN')}")
-    logger.error(f"ASTRA_DB_APPLICATION_TOKEN arg: {args.astra_token}")
-    logger.error(f"Used: {args.astra_token or os.getenv("ASTRA_DB_APPLICATION_TOKEN")}")
     
     astra_db_manager = AstraDBManager(
         token=args.astra_token or os.getenv("ASTRA_DB_APPLICATION_TOKEN"), 
         endpoint=args.astra_endpoint or os.getenv("ASTRA_DB_API_ENDPOINT"), 
         db_name=args.astra_db_name or os.getenv("ASTRA_DB_DB_NAME"))
+
+    if args.audit:
+        astra_db_manager.setup_audit_trail(os.getenv("ASTRA_DB_AUDIT_TABLE_NAME") or "mcp_audit_trail")
 
     # Initialize MCP
     # Configure JWT verifier

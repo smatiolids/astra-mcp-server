@@ -11,10 +11,12 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 from astrapy import DataAPIClient
-from astrapy.data_types import DataAPIVector
+from astrapy.data_types import DataAPIVector, DataAPITimestamp
 from .logger import get_logger
 from .utils import remove_underscore_from_dict_keys, extract_db_id_from_astra_url
 from .llm import generate_embedding
+from .audit import audit_table_definition
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -98,7 +100,70 @@ class AstraDBManager:
         result = remove_underscore_from_dict_keys(list(result))
         return result
     
+    def setup_audit_trail(self, table_name: str):
+        """Setup audit trail for the database."""
+        db = self.get_db_by_name(self.astra_db_db_name)
+        
+        tables = db.list_table_names()
+        
+        if table_name not in tables:
+            self.logger.info(f"Creating audit table {table_name}")  
+            self.audit_table  = db.create_table(table_name, definition = audit_table_definition)
+            self.logger.info(f"Audit table {table_name} created")
+        else:
+            self.logger.info(f"Audit table {table_name} already exists")
+            self.audit_table = db.get_table(table_name)
     
+    def log_audit(self, 
+                  tool_id: str, 
+                  run_id: str, 
+                  client_id: Optional[str] = None, 
+                  start_timestamp: str = None, 
+                  end_timestamp: str = None,
+                  keys: List[str] = None, 
+                  parameters: Dict[str, Any] = None, 
+                  result: Dict[str, Any] = None, 
+                  error: Optional[str] = None, 
+                  status: Optional[str] = None, 
+                  status_code: Optional[int] = None, 
+                  status_message: Optional[str] = None, 
+                  status_details: Optional[str] = None):
+        """Log audit trail for the database."""
+        if not self.audit_table:
+            return
+        
+        if start_timestamp:
+            start_timestamp = datetime.strptime(start_timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+        if end_timestamp:
+            end_timestamp = datetime.fromisoformat(end_timestamp)
+            
+        self.logger.info(f"Start timestamp: {start_timestamp}")
+        self.logger.info(f"End timestamp: {end_timestamp}")
+            
+        payload = {
+            "tool_id": tool_id,
+            "client_id": client_id,
+            "run_id": run_id,
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "start_timestamp":  DataAPITimestamp.from_datetime(start_timestamp) if start_timestamp else None,
+            "end_timestamp": DataAPITimestamp.from_datetime(end_timestamp) if end_timestamp else None,
+            "keys": keys,
+            "parameters": parameters,
+            "result": result,
+            "error": error,
+            "status": status,
+            "status_code": status_code,
+            "status_message": status_message,
+            "status_details": status_details,
+        }
+        
+        # Remove None values from payload
+        payload = {k: v for k, v in payload.items() if v is not None}
+        self.logger.debug(f"Payload: {payload}")
+        self.logger.debug(f"Inserting audit trail for {tool_id} with payload: {payload}")
+        self.audit_table.insert_one(payload)
+        self.logger.debug(f"Audit trail for {tool_id} inserted successfully")
+
     def find(
         self,
         arguments: Optional[Dict[str, Any]] = None,
