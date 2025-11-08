@@ -68,8 +68,8 @@ git commit -m "Bump version to 0.0.2"
 
 ```bash
 # Create and push the git tag
-git tag -a v0.0.2 -m "Release version 0.0.2"
-git push origin v0.0.2
+git tag -a v0.0.4 -m "Release version 0.0.4"
+git push origin v0.0.4
 ```
 
 ### 4. Build Distribution Packages
@@ -117,17 +117,17 @@ git push origin main
 
 ## Complete Release Workflow
 
-Here's a complete example for releasing version `0.0.2`:
+Here's a complete example for releasing version `0.0.4`:
 
 ```bash
 # 1. Update version in both files (manually edit pyproject.toml and setup.py)
 # 2. Commit changes
 git add pyproject.toml setup.py
-git commit -m "Bump version to 0.0.2"
+git commit -m "Bump version to 0.0.4"
 
 # 3. Create and push tag
-git tag -a v0.0.3 -m "Release version 0.0.3"
-git push origin v0.0.3
+git tag -a v0.0.4 -m "Release version 0.0.4"
+git push origin v0.0.4
 
 # 4. Build packages
 rm -rf dist/
