@@ -17,7 +17,7 @@ from .utils import load_env_variables
 load_dotenv(override=True)
 
 # Initialize logger
-logger = get_logger("astra_mcp_server", level=os.getenv("LOG_LEVEL"), log_file=os.getenv("LOG_FILE"))
+logger = get_logger("agentic_astra", level=os.getenv("LOG_LEVEL"), log_file=os.getenv("LOG_FILE"))
 
 async def main():
     
@@ -74,13 +74,15 @@ async def main():
 
     # Initialize MCP
     # Configure JWT verifier
+    token = os.getenv("AGENTIC_ASTRA_TOKEN") or os.getenv("ASTRA_MCP_SERVER_TOKEN")
+    tokens_dict = {}
+    if token:
+        tokens_dict[token] = {
+            "client_id": "agentic-astra",
+            "scopes": ["read:data"]
+        }
     verifier = StaticTokenVerifier(
-        tokens={
-            os.getenv("ASTRA_MCP_SERVER_TOKEN"): {
-                "client_id": "astra-mcp-server",
-                "scopes": ["read:data"]
-            },
-        },
+        tokens=tokens_dict,
         required_scopes=["read:data"]
     )
     mcp = FastMCP("Astra MCP Server", auth=verifier)
@@ -127,7 +129,7 @@ async def main():
 
 
 def run_server():
-    """Synchronous entry point for the astra-mcp-server command."""
+    """Synchronous entry point for the agentic-astra command."""
     asyncio.run(main())
 
 

@@ -14,7 +14,7 @@ async def mcp_client():
     transport = StreamableHttpTransport(
     url="http://localhost:8000/mcp",
     headers={
-        "Authorization": "Bearer " + os.getenv("ASTRA_MCP_SERVER_TOKEN")
+        "Authorization": "Bearer " + (os.getenv("AGENTIC_ASTRA_TOKEN") or os.getenv("ASTRA_MCP_SERVER_TOKEN"))
         }
     )
     

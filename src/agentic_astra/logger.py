@@ -15,7 +15,7 @@ class LoggerConfig:
     
     def __init__(
         self,
-        name: str = "astra_mcp_server",
+        name: str = "agentic_astra",
         level: str = "INFO",
         log_file: Optional[str] = "logs/logs.log",
         format_string: Optional[str] = None,
@@ -64,7 +64,7 @@ class LoggerConfig:
         return logger
 
 def get_logger(
-    name: str = "astra_mcp_server",
+    name: str = "agentic_astra",
     level: str = None,
     log_file: Optional[str] = None,
     stdout: bool = False

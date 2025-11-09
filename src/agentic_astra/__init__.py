@@ -1,5 +1,5 @@
 """
-Astra MCP Server package.
+Agentic Astra package.
 
 A Model Context Protocol (MCP) server for interacting with Astra DB.
 """

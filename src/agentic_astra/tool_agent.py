@@ -14,13 +14,13 @@ from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 from pydantic_core.core_schema import none_schema
 from astrapy.info import TableIndexType
-# Add the parent directory to the path to import astra_mcp_server modules
+# Add the parent directory to the path to import agentic_astra modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from astra_mcp_server.database import AstraDBManager
-from astra_mcp_server.logger import get_logger
-from astra_mcp_server.llm import run_prompt
-from astra_mcp_server.tool_agent_prompt import prompt as tool_agent_prompt
+from agentic_astra.database import AstraDBManager
+from agentic_astra.logger import get_logger
+from agentic_astra.llm import run_prompt
+from agentic_astra.tool_agent_prompt import prompt as tool_agent_prompt
 
 # Load environment variables
 load_dotenv(override=True)

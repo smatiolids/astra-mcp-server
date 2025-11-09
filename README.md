@@ -1,10 +1,10 @@
-# Astra MCP Server
+# Agentic Astra
 
 A Model Context Protocol (MCP) server for interacting with Astra DB (DataStax Astra).
 
 ![Astra MCP Server Overview](docs/astra-mcp-server-overview.png)
 
-The astra-mcp-server that provides tools to interact with Astra DB. It is built with FastMCP and Astrapy (then Astra DB or DataStax HCD can be used as database).
+The agentic-astra that provides tools to interact with Astra DB. It is built with FastMCP and Astrapy (then Astra DB or DataStax HCD can be used as database).
 
 The server will load the tool definitions from a collection in Astra DB or a file. The tool definitions are then transformed to a function definition that can be passed to an LLM, making it possible to use the tools provided by the MCP Server in an Agentic workflow.
 
@@ -14,15 +14,15 @@ When a tool is called, the server will call the appropriate method in Astra DB o
 
 ### Running it as MCP Server with STDIO
 
-To run the astra-mcp-server as MCP Server with STDIO, you can use the following command:
+To run the agentic-astra as MCP Server with STDIO, you can use the following command:
 
 ```bash
-uvx astra-mcp-server --astra_token <astra_token> --astra_endpoint <astra_endpoint>
+uvx agentic-astra --astra_token <astra_token> --astra_endpoint <astra_endpoint>
 ```
 
 ### Running it as MCP Server with Langflow
 
-To access the tools provided by astra-mcp-server as MCP Server with Langflow, you can add an MCP Server with the following configuration:
+To access the tools provided by agentic-astra as MCP Server with Langflow, you can add an MCP Server with the following configuration:
 
 ![Astra MCP Server with Langflow](docs/langflow-stdio.png)
 
@@ -36,16 +36,16 @@ The tool names and descriptions are loaded from the catalog collection in Astra 
 
 ### Running it as MCP Server with IBM Orchestrate
 
-To access the tools provided by astra-mcp-server as MCP Server with IBM Orchestrate, you can add an MCP Server with the following configuration:
+To access the tools provided by agentic-astra as MCP Server with IBM Orchestrate, you can add an MCP Server with the following configuration:
 
 ![Astra MCP Server with IBM Orchestrate](docs/orchestrate-stdio.png)
 
 ### Running it as MCP Server with HTTP locally
 
-To run the astra-mcp-server as MCP Server with STDIO, you can use the following command:
+To run the agentic-astra as MCP Server with STDIO, you can use the following command:
 
 ```bash
-uvx astra-mcp-server -tr http
+uvx agentic-astra -tr http
 ```
 If you have an .env file, the varriables will be considered while running the server. Otherwise, you can pass arguments to the server. Check the App options below for more details.
 
@@ -67,7 +67,7 @@ When running the app as HTTP, you can use the following options:
 - `--port <port>`: The port to use for the MCP Server. Default is `8000`.
 - `--workers <workers>`: The number of worker processes to use for the MCP Server. Default is `1`.
 - `--log-level <log_level>`: The log level to use for the MCP Server. Valid values are `debug`, `info`, `warning`, and `error`. Default is `info`.
-- `--log-file <log_file>`: The log file to use for the MCP Server. Default is `logs/astra_mcp_server.log`.
+- `--log-file <log_file>`: The log file to use for the MCP Server. Default is `logs/agentic_astra.log`.
 - `--audit <audit>`: Whether to enable audit trail. Default is `false`.
 
 ## 1. Set up environment variables
@@ -85,7 +85,7 @@ LOG_LEVEL=DEBUG
 LOG_FILE=./logs/logs.log
 # Logging Configuration (optional)
 LOG_LEVEL=INFO
-LOG_FILE=logs/astra_mcp_server.log
+LOG_FILE=logs/agentic_astra.log
 
 #Embedding and Agentic Tool Generation Configuration
 OPENAI_API_KEY=your_openai_api_key
@@ -98,7 +98,9 @@ IBM_WATSONX_PROJECT_ID=your_ibm_watsonx_project_id
 ASTRA_DB_AUDIT_TABLE_NAME=mcp_audit_trail
 
 #Authorization Configuration
-ASTRA_MCP_SERVER_TOKEN=your_astra_mcp_server_token
+AGENTIC_ASTRA_TOKEN=your_agentic_astra_token
+# Legacy support (optional):
+# ASTRA_MCP_SERVER_TOKEN=your_agentic_astra_token
 ```
 
 # The Tool Catalog
@@ -154,19 +156,19 @@ To update the tools, you can update the json document and save it to the file or
 
 ```bash
 # Upload a catalog file to Astra DB
-uv run astra-mcp-catalog -f tools_config_example.json -t tool_catalog
+uv run agentic-astra-catalog -f tools_config_example.json -t tool_catalog
 
 # Upload with custom table name
-uv run astra-mcp-catalog -f my_tools.json -t my_tool_catalog
+uv run agentic-astra-catalog -f my_tools.json -t my_tool_catalog
 
 # Get help
-uv run astra-mcp-catalog --help
+uv run agentic-astra-catalog --help
 
 ```
 
 # Agentic Tool Generation
 
-The astra-mcp-server includes a tool specification generator that can automatically create tool configurations by analyzing your Astra DB tables. This is particularly useful when you have existing data and want to quickly generate MCP tools for it.
+The agentic-astra includes a tool specification generator that can automatically create tool configurations by analyzing your Astra DB tables. This is particularly useful when you have existing data and want to quickly generate MCP tools for it.
 
 ## Prerequisites
 
@@ -178,7 +180,7 @@ The astra-mcp-server includes a tool specification generator that can automatica
 
 ```bash
 # Generate tool specification for a table
-uv run astra-mcp-tool-agent --table-name <table_name> --keyspace-name <keyspace_name> --db-name <db_name> --out-file <json file name> -ai "tool should be used only for future flights, so add a parameter for departure date > today" -pf <prompt file path> -ep <export prompt file path>
+uv run agentic-astra-tool-agent --table-name <table_name> --keyspace-name <keyspace_name> --db-name <db_name> --out-file <json file name> -ai "tool should be used only for future flights, so add a parameter for departure date > today" -pf <prompt file path> -ep <export prompt file path>
 ```
 
 ## Command Options
@@ -211,7 +213,7 @@ After generating a tool specification, you can:
 1. **Review and customize** the generated JSON as needed
 2. **Upload to Astra DB** using the catalog tool:
    ```bash
-   uv run astra-mcp-catalog -f user_tool.json -t tool_catalog
+   uv run agentic-astra-catalog -f user_tool.json -t tool_catalog
    ```
 # Local Development
 
@@ -220,7 +222,7 @@ After generating a tool specification, you can:
 uv sync
 
 # Run the server
-uv run astra-mcp-server --host 127.0.0.1 --port 5150 --reload --log-level debug
+uv run agentic-astra --host 127.0.0.1 --port 5150 --reload --log-level debug
 ```
 
 ### Alternative: Direct uvicorn (for development)
@@ -234,6 +236,6 @@ uv run uvicorn server:main --factory --reload --port 5150 --log-level debug
 ## Using MCP Inspector (STDIO)
 
 ```bash
-npx @modelcontextprotocol/inspector uv run astra-mcp-server --log-level debug -tr stdio
+npx @modelcontextprotocol/inspector uv run agentic-astra --log-level debug -tr stdio
 ```
 

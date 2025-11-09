@@ -1,4 +1,4 @@
-# Building and Releasing astra-mcp-server
+# Building and Releasing agentic-astra
 
 This document provides instructions for building the package and creating new releases.
 
@@ -41,14 +41,14 @@ Before creating a release, update the version number in both configuration files
 **Update `pyproject.toml`:**
 ```toml
 [project]
-name = "astra-mcp-server"
+name = "agentic-astra"
 version = "0.0.2"  # Update this version
 ```
 
 **Update `setup.py`:**
 ```python
 setup(
-    name="astra-mcp-server",
+    name="agentic-astra",
     version="0.0.3",  # Update this version
     # ... rest of configuration
 )
@@ -83,8 +83,8 @@ uv build
 ```
 
 This creates:
-- `dist/astra_mcp_server-0.0.2-py3-none-any.whl` (wheel package)
-- `dist/astra_mcp_server-0.0.2.tar.gz` (source distribution)
+- `dist/agentic_astra-0.0.2-py3-none-any.whl` (wheel package)
+- `dist/agentic_astra-0.0.2.tar.gz` (source distribution)
 
 ### 5. Test the Build (Optional)
 
@@ -107,6 +107,10 @@ twine upload --repository testpypi dist/*
 ```bash
 twine upload dist/*
 ```
+
+After successful upload, your package will be available at:
+- https://pypi.org/project/agentic-astra/
+- Installable via: `pip install agentic-astra`
 
 ### 7. Push Changes to Repository
 

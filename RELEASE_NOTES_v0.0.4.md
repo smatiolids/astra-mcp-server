@@ -60,7 +60,7 @@ ASTRA_DB_AUDIT_TABLE_NAME=mcp_audit_trail
 
 Or use the command-line flag:
 ```bash
-uvx astra-mcp-server --audit
+uvx agentic-astra --audit
 ```
 
 ## 🔄 Migration Notes
@@ -83,5 +83,5 @@ uvx astra-mcp-server --audit
 
 ---
 
-**Full Changelog**: [v0.0.3...v0.0.4](https://github.com/smatiolids/astra-mcp-server/compare/v0.0.3...v0.0.4)
+**Full Changelog**: [v0.0.3...v0.0.4](https://github.com/smatiolids/agentic-astra/compare/v0.0.3...v0.0.4)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for astra-mcp-server package.
+Setup script for agentic-astra package.
 This setup.py works alongside pyproject.toml for PyPI publishing.
 """
 
@@ -13,7 +13,7 @@ def read_readme():
     if os.path.exists(readme_path):
         with open(readme_path, "r", encoding="utf-8") as f:
             return f.read()
-    return "Astra MCP Server"
+    return "Agentic Astra"
 
 # Read the LICENSE file
 def read_license():
@@ -24,20 +24,20 @@ def read_license():
     return "MIT"
 
 setup(
-    name="astra-mcp-server",
-    version="0.0.4",
-    description="Astra MCP Server",
+    name="agentic-astra",
+    version="0.0.5",
+    description="Agentic Astra",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
     author="Samuel Matioli",
     author_email="smatioli@gmail.com",
     maintainer="Samuel Matioli",
     maintainer_email="samuel.matioli@ibm.com",
-    url="https://github.com/smatiolids/astra-mcp-server",
+    url="https://github.com/smatiolids/agentic-astra",
     project_urls={
-        "Homepage": "https://github.com/smatiolids/astra-mcp-server",
-        "Repository": "https://github.com/smatiolids/astra-mcp-server",
-        "Issues": "https://github.com/smatiolids/astra-mcp-server/issues",
+        "Homepage": "https://github.com/smatiolids/agentic-astra",
+        "Repository": "https://github.com/smatiolids/agentic-astra",
+        "Issues": "https://github.com/smatiolids/agentic-astra/issues",
     },
     license=read_license(),
     license_files=["LICENSE"],
@@ -56,18 +56,18 @@ setup(
     packages=find_packages(where="src", exclude=["tests*", "__pycache__*"]),
     package_dir={"": "src"},
     py_modules=[
-        "astra_mcp_server.audit",
-        "astra_mcp_server.auth",
-        "astra_mcp_server.catalog",
-        "astra_mcp_server.database", 
-        "astra_mcp_server.llm",
-        "astra_mcp_server.load_tools",
-        "astra_mcp_server.logger",
-        "astra_mcp_server.run_tool",
-        "astra_mcp_server.server",
-        "astra_mcp_server.tool_agent",
-        "astra_mcp_server.tool_agent_prompt",
-        "astra_mcp_server.utils",
+        "agentic_astra.audit",
+        "agentic_astra.auth",
+        "agentic_astra.catalog",
+        "agentic_astra.database", 
+        "agentic_astra.llm",
+        "agentic_astra.load_tools",
+        "agentic_astra.logger",
+        "agentic_astra.run_tool",
+        "agentic_astra.server",
+        "agentic_astra.tool_agent",
+        "agentic_astra.tool_agent_prompt",
+        "agentic_astra.utils",
     ],
     install_requires=[
         "astrapy>=2.0.1",
@@ -85,14 +85,14 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "astra-mcp-server=astra_mcp_server.server:run_server",
-            "astra-mcp-catalog=astra_mcp_server.catalog:main",
+            "agentic-astra=agentic_astra.server:run_server",
+            "agentic-astra-catalog=agentic_astra.catalog:main",
         ],
     },
     include_package_data=True,
     zip_safe=False,
     # Additional metadata for PyPI
-    download_url="https://github.com/smatiolids/astra-mcp-server/archive/v0.0.1.tar.gz",
+    download_url="https://github.com/smatiolids/agentic-astra/archive/v0.0.1.tar.gz",
     platforms=["any"],
     # Ensure compatibility with modern Python packaging
     setup_requires=["setuptools>=45", "wheel"],

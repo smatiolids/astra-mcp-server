@@ -28,13 +28,14 @@ class AstraAuth(TokenVerifier):
         """Verify token against Astra token dictionary."""
         logger.info(f"Token: {token}")
         
-        if token != os.getenv("ASTRA_MCP_SERVER_TOKEN"):
+        token_env = os.getenv("AGENTIC_ASTRA_TOKEN") or os.getenv("ASTRA_MCP_SERVER_TOKEN")
+        if token != token_env:
             return None
         logger.info(f"Token successfully verified: {token}")
         
         return AccessToken(
             token=token,
-            client_id="astra-mcp-server",
+            client_id="agentic-astra",
             scopes=["read:data"],
             expires_at=time.time() + 3600,
             claims={},
