@@ -97,10 +97,21 @@ export default function Home() {
     );
   }
 
+  const handleNewTool = () => {
+    setSelectedTool({
+      type: 'tool',
+      name: '',
+      collection_name: '',
+      table_name: '',
+      db_name: '',
+      enabled: true,
+    } as Tool);
+  };
+
   return (
     <div className="h-screen flex bg-white dark:bg-gray-800">
       <ThemeToggle />
-      <ToolList tools={tools} selectedTool={selectedTool} onSelectTool={setSelectedTool} />
+      <ToolList tools={tools} selectedTool={selectedTool} onSelectTool={setSelectedTool} onNewTool={handleNewTool} />
       <ToolEditor tool={selectedTool} onSave={handleToolSave} />
     </div>
   );

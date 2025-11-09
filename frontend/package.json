@@ -1,5 +1,5 @@
 {
-  "name": "astra-tool-catalog-ui",
+  "name": "agentic-astra-catalog",
   "version": "0.0.1",
   "description": "Next.js frontend for managing Astra DB tool catalog",
   "scripts": {
@@ -11,6 +11,7 @@
   "dependencies": {
     "@datastax/astra-db-ts": "^2.1.2",
     "next": "^14.0.4",
+    "openai": "^4.20.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

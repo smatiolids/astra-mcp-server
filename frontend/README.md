@@ -1,4 +1,4 @@
-# Astra Tool Catalog UI
+# Agentic-Astra Catalog
 
 A Next.js frontend application for viewing and editing tools stored in an Astra DB catalog collection.
 

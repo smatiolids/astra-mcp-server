@@ -42,7 +42,7 @@ class ToolLoader:
             if "value" in param or "expr" in param: # If the parameter has a value or expression, it is not sent to the MCP Client
                 continue
             
-            parameters["properties"][param["param"]] = {
+            parameters["properties"][param["param"] or param["attribute"]] = {
                 "type": param.get("type", "string"),
                 "description": param["description"],
             }

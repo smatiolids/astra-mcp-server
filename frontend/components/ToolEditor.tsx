@@ -15,44 +15,75 @@ export default function ToolEditor({ tool, onSave }: ToolEditorProps) {
   const [dataType, setDataType] = useState<'collection' | 'table'>('collection');
   const [availableAttributes, setAvailableAttributes] = useState<string[]>([]);
   const [loadingAttributes, setLoadingAttributes] = useState(false);
+  const [isNewTool, setIsNewTool] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [newToolData, setNewToolData] = useState({
+    dataType: 'collection' as 'collection' | 'table',
+    name: '',
+    dbName: '',
+  });
+  const [availableObjects, setAvailableObjects] = useState<string[]>([]);
+  const [loadingObjects, setLoadingObjects] = useState(false);
 
   useEffect(() => {
     if (tool) {
-      // Normalize parameters to ensure they have paramMode
-      const normalizedTool: Tool = {
-        ...tool,
-        parameters: tool.parameters?.map((param): ToolParameter => {
-          // Determine paramMode based on existing fields
-          if (!param.paramMode) {
-            if (param.expr !== undefined && param.expr !== null && param.expr !== '') {
-              return { ...param, paramMode: 'expression' as const };
-            } else if (param.value !== undefined && param.value !== null && param.value !== '') {
-              return { ...param, paramMode: 'static' as const };
-            } else {
-              return { ...param, paramMode: 'tool_param' as const };
-            }
-          }
-          return param;
-        }) || []
-      };
-      
-      setFormData(normalizedTool);
-      
-      // Determine initial data type based on which field has a value
-      if (tool.collection_name) {
-        setDataType('collection');
-      } else if (tool.table_name) {
-        setDataType('table');
-      } else {
-        setDataType('collection'); // default
-      }
+      // Check if this is a new tool (empty name and no _id)
+      const isEmptyTool = !tool.name && !tool._id && !tool.collection_name && !tool.table_name;
+      setIsNewTool(isEmptyTool);
 
-      // Fetch attributes from sample documents
-      loadAttributes(tool);
+      if (isEmptyTool) {
+        // New tool - don't normalize yet
+        setFormData(tool);
+        setDataType('collection');
+        setAvailableAttributes([]);
+        // Initialize newToolData from tool if it has db_name
+        if (tool.db_name) {
+          setNewToolData({
+            dataType: 'collection',
+            name: '',
+            dbName: tool.db_name,
+          });
+        }
+        // Load available objects
+        loadAvailableObjects('collection', tool.db_name);
+      } else {
+        // Existing tool - normalize parameters
+        const normalizedTool: Tool = {
+          ...tool,
+          parameters: tool.parameters?.map((param): ToolParameter => {
+            // Determine paramMode based on existing fields
+            if (!param.paramMode) {
+              if (param.expr !== undefined && param.expr !== null && param.expr !== '') {
+                return { ...param, paramMode: 'expression' as const };
+              } else if (param.value !== undefined && param.value !== null && param.value !== '') {
+                return { ...param, paramMode: 'static' as const };
+              } else {
+                return { ...param, paramMode: 'tool_param' as const };
+              }
+            }
+            return param;
+          }) || []
+        };
+        
+        setFormData(normalizedTool);
+        
+        // Determine initial data type based on which field has a value
+        if (tool.collection_name) {
+          setDataType('collection');
+        } else if (tool.table_name) {
+          setDataType('table');
+        } else {
+          setDataType('collection'); // default
+        }
+
+        // Fetch attributes from sample documents
+        loadAttributes(tool);
+      }
     } else {
       setFormData(null);
       setDataType('collection');
       setAvailableAttributes([]);
+      setIsNewTool(false);
     }
   }, [tool]);
 
@@ -82,6 +113,25 @@ export default function ToolEditor({ tool, onSave }: ToolEditorProps) {
       // Don't show error to user, just log it
     } finally {
       setLoadingAttributes(false);
+    }
+  };
+
+  const loadAvailableObjects = async (dataType: 'collection' | 'table', dbName?: string) => {
+    try {
+      setLoadingObjects(true);
+      const type = dataType === 'collection' ? 'collections' : 'tables';
+      const url = `/api/db/objects?type=${type}${dbName ? `&dbName=${encodeURIComponent(dbName)}` : ''}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setAvailableObjects(data.objects || []);
+      }
+    } catch (error) {
+      console.error('Error loading available objects:', error);
+      // Don't show error to user, just log it
+    } finally {
+      setLoadingObjects(false);
     }
   };
 
@@ -126,11 +176,150 @@ export default function ToolEditor({ tool, onSave }: ToolEditorProps) {
     }
   };
 
+  const handleGenerateTool = async () => {
+    if (!newToolData.name || !newToolData.dataType) {
+      alert('Please provide data type and name');
+      return;
+    }
+
+    try {
+      setGenerating(true);
+      const response = await fetch('/api/tools/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          dataType: newToolData.dataType,
+          name: newToolData.name,
+          dbName: newToolData.dbName,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to generate tool');
+      }
+
+      // Set the generated tool as formData
+      const generatedTool = data.tool;
+      setFormData(generatedTool);
+      setIsNewTool(false);
+      
+      // Update dataType and load attributes
+      setDataType(newToolData.dataType);
+      await loadAttributes(generatedTool);
+    } catch (error) {
+      alert(`Error generating tool: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   if (!formData) {
     return (
       <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-800">
         <div className="text-center text-gray-500 dark:text-gray-400">
           <p className="text-lg">Select a tool from the list to view and edit</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show new tool creation form
+  if (isNewTool) {
+    return (
+      <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-800">
+        <div className="max-w-2xl mx-auto p-6">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Create New Tool</h1>
+          
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Data Type *
+              </label>
+              <select
+                value={newToolData.dataType}
+                onChange={(e) => {
+                  const newDataType = e.target.value as 'collection' | 'table';
+                  setNewToolData({ ...newToolData, dataType: newDataType, name: '' });
+                  loadAvailableObjects(newDataType, newToolData.dbName);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+              >
+                <option value="collection">Collection</option>
+                <option value="table">Table</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {newToolData.dataType === 'collection' ? 'Collection Name' : 'Table Name'} *
+              </label>
+              {availableObjects.length > 0 ? (
+                <select
+                  value={newToolData.name}
+                  onChange={(e) => setNewToolData({ ...newToolData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                >
+                  <option value="">-- Select {newToolData.dataType} --</option>
+                  {availableObjects.map((obj) => (
+                    <option key={obj} value={obj}>
+                      {obj}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={newToolData.name}
+                  onChange={(e) => setNewToolData({ ...newToolData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                  placeholder={loadingObjects ? `Loading ${newToolData.dataType}s...` : `Enter ${newToolData.dataType} name`}
+                />
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Database Name
+              </label>
+              <input
+                type="text"
+                value={newToolData.dbName}
+                onChange={(e) => {
+                  const newDbName = e.target.value;
+                  setNewToolData({ ...newToolData, dbName: newDbName, name: '' });
+                  if (newDbName) {
+                    loadAvailableObjects(newToolData.dataType, newDbName);
+                  } else {
+                    loadAvailableObjects(newToolData.dataType);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                placeholder="Leave empty to use default"
+              />
+            </div>
+
+            <button
+              onClick={handleGenerateTool}
+              disabled={generating || !newToolData.name}
+              className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {generating ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating tool with AI...
+                </span>
+              ) : (
+                'Generate Tool with AI'
+              )}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -616,28 +805,17 @@ export default function ToolEditor({ tool, onSave }: ToolEditorProps) {
                       )}
                     </div>
 
-                    {/* 2. Param Name and 4. Attribute on same row */}
+                    {/* 4. Attribute and 2. Param Name on same row */}
                     <div className="grid grid-cols-2 gap-4 mb-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Param Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={param.param || ''}
-                          onChange={(e) => updateParameter(index, 'param', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Attribute
+                          Attribute *
                         </label>
                         {availableAttributes.length > 0 ? (
                           <select
                             value={param.attribute || ''}
                             onChange={(e) => updateParameter(index, 'attribute', e.target.value)}
+                            required
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                           >
                             <option value="">-- Select attribute --</option>
@@ -655,10 +833,23 @@ export default function ToolEditor({ tool, onSave }: ToolEditorProps) {
                             type="text"
                             value={param.attribute || ''}
                             onChange={(e) => updateParameter(index, 'attribute', e.target.value)}
+                            required
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                             placeholder={loadingAttributes ? 'Loading attributes...' : '$vectorize, $vector, or column name'}
                           />
                         )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Param Name
+                        </label>
+                        <input
+                          type="text"
+                          value={param.param || ''}
+                          onChange={(e) => updateParameter(index, 'param', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                        />
                       </div>
                     </div>
 

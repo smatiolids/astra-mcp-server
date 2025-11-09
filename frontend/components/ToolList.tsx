@@ -4,14 +4,23 @@ interface ToolListProps {
   tools: Tool[];
   selectedTool: Tool | null;
   onSelectTool: (tool: Tool) => void;
+  onNewTool: () => void;
 }
 
-export default function ToolList({ tools, selectedTool, onSelectTool }: ToolListProps) {
+export default function ToolList({ tools, selectedTool, onSelectTool, onNewTool }: ToolListProps) {
   return (
     <div className="w-80 border-r border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 h-screen overflow-y-auto">
       <div className="p-4 border-b border-gray-300 dark:border-gray-700">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Tools</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{tools.length} tool{tools.length !== 1 ? 's' : ''}</p>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Tools</h2>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{tools.length} tool{tools.length !== 1 ? 's' : ''}</p>
+        <button
+          onClick={onNewTool}
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+        >
+          + New Tool
+        </button>
       </div>
       <div className="p-2">
         {tools.length === 0 ? (

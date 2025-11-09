@@ -147,6 +147,65 @@ class AstraClient {
       throw new Error(`Failed to fetch sample documents: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+
+  async listKeyspaces(): Promise<string[]> {
+    if (!this.client) {
+      await this.connect();
+    }
+
+    try {
+      // Get list of databases (keyspaces)
+      const admin = this.client!.admin();
+      const databases = await admin.listDatabases();
+      return databases.map((db: any) => db.name || db.id).filter(Boolean);
+    } catch (error) {
+      throw new Error(`Failed to list keyspaces: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  async listCollections(dbName?: string): Promise<string[]> {
+    if (!this.db) {
+      await this.connect();
+    }
+
+    try {
+      const targetDbName = dbName || this.dbName;
+      if (!targetDbName) {
+        throw new Error('Database name is required');
+      }
+
+      // Get the database
+      const targetDb = this.client!.db(this.endpoint!, { token: this.token });
+      
+      // List collections
+      const collections = await targetDb.listCollections();
+      return collections.map((col: any) => col.name || col);
+    } catch (error) {
+      throw new Error(`Failed to list collections: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  async listTables(dbName?: string): Promise<string[]> {
+    if (!this.db) {
+      await this.connect();
+    }
+
+    try {
+      const targetDbName = dbName || this.dbName;
+      if (!targetDbName) {
+        throw new Error('Database name is required');
+      }
+
+      // Get the database
+      const targetDb = this.client!.db(this.endpoint!, { token: this.token });
+      
+      // List tables
+      const tables = await targetDb.listTables();
+      return tables.map((table: any) => table.name || table);
+    } catch (error) {
+      throw new Error(`Failed to list tables: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 }
 
 // Utility function to extract all attributes from documents (including nested)

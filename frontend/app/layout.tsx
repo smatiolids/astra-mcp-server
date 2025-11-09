@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Astra Tool Catalog',
+  title: 'Agentic Astra Catalog',
   description: 'Manage your Astra DB tool catalog',
 }
 
