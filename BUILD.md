@@ -7,7 +7,7 @@ This document provides instructions for building the package and creating new re
 ```bash
 uv pip install --upgrade build
 uv pip install --upgrade twine
-uv build
+uv build --no-cache
 uv twine upload dist/*
 ```
 
@@ -27,7 +27,7 @@ For local development and testing:
 uv pip install --upgrade build
 
 # Build the package locally
-uv build
+uv build --no-cache
 ```
 
 This will create distribution files in the `dist/` directory.

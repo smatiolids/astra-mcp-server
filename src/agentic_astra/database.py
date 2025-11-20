@@ -31,6 +31,7 @@ class AppContext:
 class AstraDBManager:
     """Manager class for Astra DB operations."""
     logger = get_logger("Astra DB Manager")
+    audit_table = None
     
     def __init__(self, token: str, endpoint: str = None, db_name: str = None):
         self.astra_db_token = token

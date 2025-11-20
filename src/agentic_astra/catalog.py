@@ -1,3 +1,8 @@
+"""
+DEPRECATED: Use agentic-astra-ui to edit the catalog.
+This module is used to upload the catalog to the Astra DB collection.
+"""
+
 from math import e
 from .database import AstraDBManager
 from .logger import get_logger
@@ -12,6 +17,8 @@ class AstraCatalog:
     logger = get_logger("catalog")
     
     def __init__(self):
+        self.logger.warning("AstraCatalog is deprecated. Use agentic-astra-ui to edit the catalog.")
+        
         self.astra_db_name = os.getenv("ASTRA_DB_DB_NAME")
         self.astra_db_manager = AstraDBManager(os.getenv("ASTRA_DB_APPLICATION_TOKEN"), os.getenv("ASTRA_DB_API_ENDPOINT"), self.astra_db_name)
         self.db = self.astra_db_manager.get_db_by_name(self.astra_db_name)

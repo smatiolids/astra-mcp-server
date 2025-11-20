@@ -222,20 +222,21 @@ After generating a tool specification, you can:
 uv sync
 
 # Run the server
-uv run agentic-astra --host 127.0.0.1 --port 5150 --reload --log-level debug
+uv run agentic-astra --env-file .env --reload --log-level debug
 ```
 
-### Alternative: Direct uvicorn (for development)
+# Run from the build version
 
 ```bash
-# Run directly with uvicorn
-uv run uvicorn server:main --factory --reload --port 5150 --log-level debug
+# Run the server
+uv build
+uvx --from ./dist/agentic_astra-0.0.5-py3-none-any.whl agentic-astra --env-file .env -tr http
 ```
 
 
 ## Using MCP Inspector (STDIO)
 
 ```bash
-npx @modelcontextprotocol/inspector uv run agentic-astra --log-level debug -tr stdio
+npx @modelcontextprotocol/inspector uv run agentic-astra --log-level debug -tr stdio --env-file .env 
 ```
 
